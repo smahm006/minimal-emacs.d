@@ -4,3 +4,12 @@
 !init.el
 !.github/
 !.LICENSE
+
+# my customization
+!pre-early-init.el
+!pre-init.el
+!post-init.el
+!snippets/
+!snippets/*
+!/config/
+!/config/*
