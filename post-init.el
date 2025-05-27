@@ -3,7 +3,7 @@
 ;; Configure Emacs to ask for confirmation before exiting
 (setq confirm-kill-emacs 'y-or-n-p)
 
-;; Ensure all libraries are byte-compiled and native-compiled 
+;; Ensure all libraries are byte-compiled and native-compiled
 (use-package compile-angel
   :ensure t
   :demand t
@@ -70,11 +70,14 @@
   :config
   (setenv "GPG_AGENT_INFO" nil))
 
-;; User Experience configuration
-;; (minimal-emacs-load "config/ux.el")
+;; Completion configuration
+(minimal-emacs-load-user-init "config/completion.el")
 
 ;; User Interface configuration
-;; (minimal-emacs-load "config/ui.el")
+(minimal-emacs-load-user-init "config/ui.el")
+
+;; User Experience configuration
+(minimal-emacs-load-user-init "config/ux.el")
 
 ;; Org configuration
 ;; (minimal-emacs-load "config/org.el")
