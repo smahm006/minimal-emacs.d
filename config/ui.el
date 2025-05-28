@@ -59,19 +59,20 @@
   (doom-modeline-icon t)
   (doom-modeline-major-mode-icon nil))
 
-;; Line guides
+;; Show line number column
 (setq display-line-numbers-grow-only t)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 (add-hook 'conf-mode-hook #'display-line-numbers-mode)
 (add-hook 'text-mode-hook #'display-line-numbers-mode)
 (add-hook 'org-mode-hook (lambda () (display-line-numbers-mode -1)))
 (add-hook 'eat-mode-hook (lambda () (display-line-numbers-mode -1)))
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
-(use-package hl-line
-  :ensure nil
-  :hook
-  ((prog-mode org-mode) . global-hl-line-mode))
+;; Highlight current line in prog mode
+(add-hook 'prog-mode-hook #'global-hl-line-mode)
+(add-hook 'org-mode-hook #'global-hl-line-mode)
 
+;; Line guides
 (use-package indent-bars
   :custom
   (indent-bars-treesit-support t)

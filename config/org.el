@@ -83,7 +83,7 @@
 (use-package denote
   :hook (dired-mode . denote-dired-mode)
   :bind
-  (:map smahm006/note-map
+  (:map minimal-emacs/note-map
         (("n" . denote)
          ("r" . denote-rename-file)
          ("l" . denote-link)
@@ -91,14 +91,14 @@
          ("d" . denote-sort-dired)))
   :config
   (let ((org-notes-directory (format "%s/notes/" org-directory)))
-    (smahm006/mkdir org-notes-directory)
+    (minimal-emacs/mkdir org-notes-directory)
     (setq denote-directory org-notes-directory))
   (denote-rename-buffer-mode 1))
 
 (use-package consult-denote
   :after denote consult
   :bind
-  (:map smahm006/note-map
+  (:map minimal-emacs/note-map
         ("f" . consult-denote-find)
         ("g" . consult-denote-grep))
   :custom

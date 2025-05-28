@@ -120,3 +120,107 @@
   :ensure t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package corfu
+  :ensure t
+  :defer t
+  :commands (corfu-mode global-corfu-mode)
+  :hook
+  ((after-init . global-corfu-mode)
+   (after-init . corfu-popupinfo-mode)
+   (after-init . corfu-echo-mode)
+   (after-init . corfu-history-mode)
+   ;; Disable auto completion for termintal
+   (eat-mode . (lambda () (setq-local corfu-auto nil) (corfu-mode))))
+  :bind
+  (:map corfu-map
+        ("TAB" . corfu-next)
+        ([tab] . corfu-next)
+        ("S-TAB" . corfu-previous)
+        ([backtab] . corfu-previous)
+		("SPC" . corfu-insert-separator)
+        ("C-/" . corfu-insert)
+        ("<escape>"  . corfu-quit))
+  :custom
+  ;; Hide commands in M-x which do not apply to the current mode.
+  (read-extended-command-predicate #'command-completion-default-include-p)
+  ;; Disable Ispell completion function
+  (text-mode-ispell-word-completion nil)
+  (tab-always-indent t)               ; Do not use TAB for completion
+  (corfu-cycle t)                     ; Enable cycling for `corfu-next/previous'
+  (corfu-auto t)                      ; Enable auto completion
+  (corfu-quit-no-match t)             ; Quit auto complete if there is no match
+  (corfu-preview-current t)           ; Disable current candidate preview
+  :config
+  (keymap-unset corfu-map "RET")
+  (define-key corfu-map [remap previous-line] nil)
+  (define-key corfu-map [remap next-line] nil))
+
+;; Completion At Point Extensions
+(use-package cape
+  :init
+  ;; Note: The order matters! File is first
+  (add-to-list 'completion-at-point-functions #'cape-dict)
+  (add-to-list 'completion-at-point-functions #'cape-abbrev)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  (add-to-list 'completion-at-point-functions #'cape-history)
+  (add-to-list 'completion-at-point-functions #'cape-file))
+
+;; Better dabbrev expand
+;; https://www.masteringemacs.org/article/text-expansion-hippie-expand
+(use-package hippie-expand
+  :ensure nil
+  :bind ([remap dabbrev-exand] . hippie-expand)
+  :config
+  (setq hippie-expand-verbose t)
+  (setq hippie-expand-dabbrev-skip-space t)
+  (setq hippie-expand-try-functions-list
+        '(
+          try-expand-dabbrev
+          try-expand-dabbrev-all-buffers
+          try-expand-dabbrev-from-kill
+          try-complete-lisp-symbol-partially
+          try-complete-lisp-symbol
+          try-expand-list
+          try-expand-line
+          try-complete-file-name-partially
+          try-complete-file-name
+          try-expand-all-abbrevs)))
+
+;; Spell Checking
+(use-package ispell
+  :ensure nil
+  :after flyspell
+  :if (executable-find "hunspell")
+  :custom
+  (ispell-program-name "hunspell")
+  (ispell-dictionary "en_US,de_DE")
+  :config
+  (ispell-set-spellchecker-params)
+  (ispell-hunspell-add-multi-dic "en_US,de_DE"))
+
+(use-package flyspell
+  :if (not (executable-find "enchant-2"))
+  :ensure nil
+  :hook
+  (((text-mode org-mode LaTeX-mode) . flyspell-mode)
+   ((prog-mode conf-mode) . flyspell-prog-mode)
+   (ispell-change-dictionary . restart-flyspell-mode))
+  :preface
+  (defun my/restart-flyspell-mode ()
+    (when flyspell-mode
+      (flyspell-mode-off)
+      (flyspell-mode-on)
+      (flyspell-buffer)))
+  :custom
+  (flyspell-issue-welcome-flag nil)
+  (flyspell-issue-message-flag nil))
+
+(use-package jinx
+  :if (executable-find "enchant-2")
+  :hook (emacs-startup . global-jinx-mode)
+  :bind (([remap ispell-word] . jinx-correct)
+         ("C-M-$" . jinx-languages))
+  :custom
+  (jinx-languages "en_US"))

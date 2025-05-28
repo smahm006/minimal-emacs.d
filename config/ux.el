@@ -56,6 +56,8 @@
 
 ;; Window Management
 (use-package ace-window
+  :ensure t
+  :defer t  
   :autoload ace-display-buffer
   :init
   (winner-mode)

@@ -79,6 +79,11 @@
 ;; User Experience configuration
 (minimal-emacs-load-user-init "config/ux.el")
 
-;; Org configuration
-;; (minimal-emacs-load "config/org.el")
+;; Navigation configuration
+(minimal-emacs-load-user-init "config/navigation.el")
 
+;; Editing configuration
+(minimal-emacs-load-user-init "config/editing.el")
+
+;; Org configuration
+;; (minimal-emacs-load-user-init "config/org.el")
