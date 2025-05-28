@@ -11,7 +11,9 @@
                       (define-key minimal-emacs/run-map (kbd "V") #'minimal-emacs/python-venv-setup)
                       (define-key minimal-emacs/run-map (kbd "r") #'minimal-emacs/python-run)
                       (define-key minimal-emacs/run-map (kbd "c") #'minimal-emacs/python-check)
-                      (define-key minimal-emacs/run-map (kbd "f") #'minimal-emacs/python-format)))
+                      (define-key minimal-emacs/run-map (kbd "f") #'minimal-emacs/python-format)
+                      (local-set-key [remap backward-sexp] #'python-nav-backward-sexp-safe)
+                      (local-set-key [remap forward-sexp] #'python-nav-forward-sexp-safe)))
   :preface
   (defun minimal-emacs/pyrightconfig-write (virtualenv)
     "Write a `pyrightconfig.json' file at the Git root of a project

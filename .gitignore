@@ -10,8 +10,10 @@
 !pre-init.el
 !post-init.el
 !snippets/
-!snippets/*
+!snippets/*.el
 !config/
-!config/*
+!config/*.el
 !languages/
-!languages/*
+!languages/*.el
+!themes/
+!themes/*.el

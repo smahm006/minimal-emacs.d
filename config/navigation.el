@@ -90,7 +90,8 @@
                       (text-scale-adjust -1))))
   :bind (:map speedbar-file-key-map
               ("<tab>" . speedbar-expand-line )
-              ("<backtab>" . speedbar-contract-line ))
+              ("<backtab>" . speedbar-contract-line )
+              ("M-p" . speedbar-up-directory))
   :custom
   (speedbar-frame-parameters
    '((name . "speedbar")
@@ -165,7 +166,20 @@
 
 ;; Speedbar sidebar
 (use-package sr-speedbar
-  :custom
-  (sr-speedbar-right-side nil)
+  :preface
+  (defun minimal-emacs/sr-speedbar-toggle-smart ()
+    "Toggle sr-speedbar or kill it if already focused."
+    (interactive)
+    (if (string= (buffer-name) "*SPEEDBAR*")
+        ;; If currently in *SPEEDBAR*, switch and kill the buffer
+        (progn
+          (sr-speedbar-toggle)
+          (kill-buffer "*SPEEDBAR*"))
+      ;; Otherwise, toggle and focus
+      (progn
+        (sr-speedbar-toggle)
+        (sr-speedbar-select-window))))
   :bind
-  ("<f2>" . sr-speedbar-toggle))
+  ("<f2>" . minimal-emacs/sr-speedbar-toggle-smart)
+  :custom
+  (sr-speedbar-right-side nil))

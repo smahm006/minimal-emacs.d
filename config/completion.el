@@ -200,10 +200,8 @@
   :bind (("M-+" . tempel-expand)
          ("M-*" . tempel-insert)
          (:map tempel-map
-               ("TAB" . tempel-next)
-               ([tab] . tempel-next)
-               ("S-TAB" . tempel-previous)
-               ([backtab] . tempel-previous)))
+               ("C-M-n" . tempel-next)
+               ("C-M-p" . tempel-previous)))
   :preface
   ;; Setup completion at point
   (defun minimal-emacs/tempel-setup-capf ()
@@ -212,7 +210,7 @@
                 (cons #'tempel-complete
                       completion-at-point-functions)))
   :custom
-  (tempel-path (format "%s/snippets/*.eld" user-emacs-directory)))
+  (tempel-path (format "%s/snippets/*.eld" minimal-emacs-user-directory)))
 
 ;; Spell Checking
 (use-package ispell

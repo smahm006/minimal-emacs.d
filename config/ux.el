@@ -221,3 +221,69 @@
           (consult-ripgrep "ripgrep" "r")
           (magit-project-status "Magit" "m")))
   (setq project-vc-extra-root-markers '(".project")))
+
+;; File manager
+(use-package dirvish
+  :init
+  (load-file (expand-file-name "elpa/dirvish-2.3.0/extensions/dirvish-yank.el" minimal-emacs-user-directory))
+  (load-file (expand-file-name "elpa/dirvish-2.3.0/extensions/dirvish-quick-access.el" minimal-emacs-user-directory))
+  (load-file (expand-file-name "elpa/dirvish-2.3.0/extensions/dirvish-collapse.el" minimal-emacs-user-directory))
+  (load-file (expand-file-name "elpa/dirvish-2.3.0/extensions/dirvish-icons.el" minimal-emacs-user-directory))
+  (load-file (expand-file-name "elpa/dirvish-2.3.0/extensions/dirvish-vc.el" minimal-emacs-user-directory))
+  (load-file (expand-file-name "elpa/dirvish-2.3.0/extensions/dirvish-subtree.el" minimal-emacs-user-directory))
+  (load-file (expand-file-name "elpa/dirvish-2.3.0/extensions/dirvish-side.el" minimal-emacs-user-directory))
+  (dirvish-override-dired-mode)
+  :bind
+  ("<f1>" . dirvish-side)
+  (:map minimal-emacs/file-map
+        ("d" . dirvish)
+        ("f" . dirvish-fd))
+  (:map dirvish-mode-map
+        ("F"   . dirvish-toggle-fullscreen)
+        ("N"   . dirvish-narrow)
+        ("M-f" . dirvish-history-go-forward)
+        ("M-b" . dirvish-history-go-backward)
+        ("M-p" . dired-up-directory)
+        ("M-n" . dired-find-file)
+        ("M-d" . empty-trash)
+        ("M-l" . dirvish-ls-switches-menu)
+        ("M-m" . dirvish-mark-menu)
+        ("M-s" . dirvish-setup-menu)
+        ("M-t" . dirvish-layout-toggle)
+        ("a"   . dirvish-quick-access)
+        ("s"   . dirvish-quicksort)
+        ("f"   . dirvish-file-info-menu)
+        ("y"   . dirvish-yank-menu)
+        ("v"   . dirvish-vc-menu)
+        ("^"   . dirvish-history-last)
+        ("h"   . dirvish-history-jump)
+        ("z"   . dirvish-show-history)
+        ("TAB" . dirvish-subtree-toggle))
+  :custom
+  (dirvish-reuse-session nil)
+  (dirvish-subtree-state-style 'nerd)
+  (dirvish-use-header-line 'global)
+  (dired-listing-switches
+   "-l --almost-all --human-readable --group-directories-first --no-group")
+  (dirvish-attributes
+   '(nerd-icons file-time file-size collapse subtree-state vc-state))
+  (dirvish-path-separators (list
+                            (format "  %s " (nerd-icons-codicon "nf-cod-home"))
+                            (format "  %s " (nerd-icons-codicon "nf-cod-root_folder"))
+                            (format " %s " (nerd-icons-faicon "nf-fa-angle_right"))))
+  (dirvish-header-line-format
+   '(:left (path) :right (free-space))
+   dirvish-mode-line-format
+   '(:left (sort file-time " " file-size symlink) :right (omit yank index)))
+  (dirvish-mode-line-format
+   '(:left (sort symlink) :right (vc-info yank index)))
+  (dirvish-quick-access-entries
+   '(("h" "~/"                                          "Home")
+     ("d" "~/dump/"                                     "Downloads")
+     ("w" "~/workstation"                               "Workstation")
+     ("i" "~/media/image"                           "Images")
+     ("m" "/mnt/"                                       "Drives")
+     ("t" "~/.local/share/Trash/files/"                 "TrashCan")
+     ("r" "/"                                           "Root")))
+  :config
+  (dirvish-side-follow-mode))

@@ -7,18 +7,8 @@
 (setq blink-cursor-mode t)                                ; Blink cursor
 
 ;; Theme settings
-(use-package doom-themes
-  :if (display-graphic-p)
-  :init
-  (load-theme (if (string= (minimal-emacs/location) "home")
-                  'doom-homage-black
-                'doom-gruvbox)
-              t)
-  :custom
-  (doom-themes-enable-bold t)
-  (doom-themes-enable-italic t)
-  :config
-  (doom-themes-visual-bell-config))
+(minimal-emacs-load-user-init "themes/tomorrow-night-paradise-theme.el")
+(load-theme 'tomorrow-night-paradise t)
 
 ;; Font settings
 (set-face-attribute 'default nil :font "MapleMonoNormal 14")
@@ -27,7 +17,7 @@
 ;; Icon settings
 (use-package nerd-icons
   :custom
-  (nerd-icons-font-family "HackNerdFont"))
+  (nerd-icons-font-family "Symbols Nerd Font Mono"))
 
 (use-package nerd-icons-completion
   :after marginalia vertico
@@ -49,15 +39,17 @@
 
 
 ;; Modeline settings
-(setq line-number-mode t)
-(setq column-number-mode t)
-(setq mode-line-position-column-line-format '("%l:%C"))
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
+  :config
+  (setq line-number-mode t)
+  (setq column-number-mode t)
+  (setq mode-line-position-column-line-format '("%l:%C"))
   :custom
+  (doom-modeline-buffer-encoding nil)
+  (doom-modeline-percent-position nil)
   (doom-modeline-buffer-file-name-style 'file-name)
-  (doom-modeline-icon t)
-  (doom-modeline-major-mode-icon nil))
+  (doom-modeline-icon t))
 
 ;; Show line number column
 (setq display-line-numbers-grow-only t)
@@ -89,5 +81,4 @@
   (indent-bars-pattern ".")
   (indent-bars-width-frac 0.2)
   :hook
-  ((python-base-mode yaml-ts-mode emacs-lisp-mode) . indent-bars-mode))
-
+  (prog-mode . indent-bars-mode))
