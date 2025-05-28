@@ -43,14 +43,6 @@
   :vc (:url "https://github.com/jdtsmith/eglot-booster" :branch "main")
   :init (eglot-booster-mode))
 
-;; Automatic treesitter language installation
-(use-package treesit-auto
-  :hook
-  (after-init . global-treesit-auto-mode)
-  :custom
-  (treesit-auto-install 'prompt))
-
-
 ;; Emacs documentation support.
 (use-package eldoc
   :ensure nil

@@ -92,17 +92,17 @@
 
 ;; Undo/Redo setings
 (use-package vundo
-  :bind ("M-z" . vundo)
+  :bind
+  (:map ctl-x-map
+        ("u". vundo))
   :config
   (when (display-graphic-p)
     (setq vundo-glyph-alist vundo-unicode-symbols)))
 
 (use-package undo-fu
   :init
-  (global-unset-key (kbd "C-/"))
-  (global-unset-key (kbd "C-?"))
-  :bind (("C-z" . undo-fu-only-undo)
-         ("C-S-z" . undo-fu-only-redo))
+  :bind (([remap undo] . undo-fu-only-undo)
+         ([remap undo-redo] . undo-fu-only-redo))
   :custom
   (undo-fu-allow-undo-in-region t)
   (undo-limit 67108864) ; 64MB.

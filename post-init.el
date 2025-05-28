@@ -85,14 +85,23 @@
 ;; Editing configuration
 (minimal-emacs-load-user-init "config/editing.el")
 
-;; Editing configuration
+;; Version Control configuration
 (minimal-emacs-load-user-init "config/vc.el")
 
-;; Editing configuration
+;; Development configuration
 (minimal-emacs-load-user-init "config/development.el")
 
-;; Editing configuration
+;; Container configuration
 (minimal-emacs-load-user-init "config/container.el")
 
 ;; Org configuration
 (minimal-emacs-load-user-init "config/org.el")
+
+;; Apps configuration
+(minimal-emacs-load-user-init "config/apps.el")
+
+;; Languages configuration
+(let ((language-config-dir (expand-file-name "languages" minimal-emacs-user-directory)))
+    (when (file-directory-p language-config-dir)
+    (dolist (file (directory-files language-config-dir "\\.el$"))
+      (minimal-emacs-load-user-init file))))

@@ -134,12 +134,12 @@
    (eat-mode . (lambda () (setq-local corfu-auto nil) (corfu-mode))))
   :bind
   (:map corfu-map
-        ("TAB" . corfu-next)
-        ([tab] . corfu-next)
-        ("S-TAB" . corfu-previous)
-        ([backtab] . corfu-previous)
-		("SPC" . corfu-insert-separator)
-        ("C-/" . corfu-insert)
+        ("C-M-n" . corfu-next)
+        ("C-M-p" . corfu-previous)
+        ("C-M-i" . corfu-insert)
+        ("C-M-b" . corfu-first)
+        ("C-M-f" . corfu-last)
+        ("SPC" . corfu-insert-separator)
         ("<escape>"  . corfu-quit))
   :custom
   ;; Hide commands in M-x which do not apply to the current mode.
@@ -151,12 +151,13 @@
   (corfu-auto t)                      ; Enable auto completion
   (corfu-quit-no-match t)             ; Quit auto complete if there is no match
   (corfu-preview-current t)           ; Disable current candidate preview
+  (corfu-auto-prefix 2)               ; Complete with less prefix keys
   :config
   (keymap-unset corfu-map "RET")
   (define-key corfu-map [remap previous-line] nil)
   (define-key corfu-map [remap next-line] nil)
-  (define-key corfu-map [remap corfu-first] nil)
-  (define-key corfu-map [remap corfu-last] nil))
+  (define-key corfu-map [remap beginning-of-buffer] nil)
+  (define-key corfu-map [remap end-of-buffer] nil))
 
 ;; Completion At Point Extensions
 (use-package cape
@@ -173,7 +174,7 @@
 ;; https://www.masteringemacs.org/article/text-expansion-hippie-expand
 (use-package hippie-expand
   :ensure nil
-  :bind ([remap dabbrev-exand] . hippie-expand)
+  :bind ([remap dabbrev-expand] . hippie-expand)
   :config
   (setq hippie-expand-verbose t)
   (setq hippie-expand-dabbrev-skip-space t)

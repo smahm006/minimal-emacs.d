@@ -11,5 +11,7 @@
 !post-init.el
 !snippets/
 !snippets/*
-!/config/
-!/config/*
+!config/
+!config/*
+!languages/
+!languages/*

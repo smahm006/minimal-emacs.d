@@ -33,7 +33,7 @@
 
 ;; Define directories for backups and autosaves
 (defvar backup-session-dir (format "%s/emacs/backups/session/" xdg-data))
-(minimal-emacs/mkdir backup-session-dir)  
+(minimal-emacs/mkdir backup-session-dir)
 (defvar backup-save-dir (format "%s/emacs/backups/save/" xdg-data))
 (minimal-emacs/mkdir backup-save-dir)
 (let ((auto-save-dir (format "%s/emacs/auto-save/" xdg-cache)))
@@ -57,7 +57,7 @@
 ;; Window Management
 (use-package ace-window
   :ensure t
-  :defer t  
+  :defer t
   :autoload ace-display-buffer
   :init
   (winner-mode)
@@ -195,6 +195,7 @@
    ("C-p" . project-find-file)
    :map project-prefix-map
    ("l" . project-list-buffers)
+   ("F" . project-forget-project)
    ("S" . minimal-emacs/project-save-all-buffers)
    ("s" . project-search))
   :preface
