@@ -20,6 +20,4 @@
 ;; Change the default emacs configuration dircetory to avoid cluttering main
 (setq minimal-emacs-user-directory user-emacs-directory)
 (setq minimal-emacs-var-dir (expand-file-name "var/" minimal-emacs-user-directory))
-(setq user-emacs-directory minimal-emacs-var-dir)  
-
-
+(setq user-emacs-directory minimal-emacs-var-dir)

@@ -2,7 +2,7 @@
 
 (setq kill-ring-max 128)                                  ; Maximum length of kill ring
 (setq mark-ring-max 128)                                  ; Maximum length of mark ring
-(setq delete-selection-mode t)                            ; Typing will replace a selected region
+(delete-selection-mode 1)                                 ; Typing will replace a selected region
 
 ;; Default to utf-8 encoding
 (setq set-default-coding-systems 'utf-8)

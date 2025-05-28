@@ -154,7 +154,9 @@
   :config
   (keymap-unset corfu-map "RET")
   (define-key corfu-map [remap previous-line] nil)
-  (define-key corfu-map [remap next-line] nil))
+  (define-key corfu-map [remap next-line] nil)
+  (define-key corfu-map [remap corfu-first] nil)
+  (define-key corfu-map [remap corfu-last] nil))
 
 ;; Completion At Point Extensions
 (use-package cape
@@ -187,6 +189,29 @@
           try-complete-file-name-partially
           try-complete-file-name
           try-expand-all-abbrevs)))
+
+;; Snippet completion
+(use-package tempel
+  :hook
+  (conf-mode . minimal-emacs/tempel-setup-capf)
+  (prog-mode . minimal-emacs/tempel-setup-capf)
+  (text-mode . minimal-emacs/tempel-setup-capf)
+  :bind (("M-+" . tempel-expand)
+         ("M-*" . tempel-insert)
+         (:map tempel-map
+               ("TAB" . tempel-next)
+               ([tab] . tempel-next)
+               ("S-TAB" . tempel-previous)
+               ([backtab] . tempel-previous)))
+  :preface
+  ;; Setup completion at point
+  (defun minimal-emacs/tempel-setup-capf ()
+    ;; Add the Tempel Capf to `completion-at-point-functions'.
+    (setq-local completion-at-point-functions
+                (cons #'tempel-complete
+                      completion-at-point-functions)))
+  :custom
+  (tempel-path (format "%s/snippets/*.eld" user-emacs-directory)))
 
 ;; Spell Checking
 (use-package ispell

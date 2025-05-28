@@ -85,5 +85,14 @@
 ;; Editing configuration
 (minimal-emacs-load-user-init "config/editing.el")
 
+;; Editing configuration
+(minimal-emacs-load-user-init "config/vc.el")
+
+;; Editing configuration
+(minimal-emacs-load-user-init "config/development.el")
+
+;; Editing configuration
+(minimal-emacs-load-user-init "config/container.el")
+
 ;; Org configuration
-;; (minimal-emacs-load-user-init "config/org.el")
+(minimal-emacs-load-user-init "config/org.el")
