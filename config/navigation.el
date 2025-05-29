@@ -79,107 +79,43 @@
   :config
   (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark))
 
-;; File/Tag summarizing utility
-(use-package speedbar
-  :ensure nil
-  :hook
-  ((speedbar-mode . (lambda()
-                      ;; Disable word wrapping in speedbar if you always enable it globally.
-                      (visual-line-mode 0)
-                      ;; Change speedbar's text size.  May need to alter the icon size if you change size.
-                      (text-scale-adjust -1))))
-  :bind (:map speedbar-file-key-map
-              ("<tab>" . speedbar-expand-line )
-              ("<backtab>" . speedbar-contract-line )
-              ("M-p" . speedbar-up-directory))
-  :custom
-  (speedbar-frame-parameters
-   '((name . "speedbar")
-     (title . "speedbar")
-     (minibuffer . nil)
-     (border-width . 2)
-     (menu-bar-lines . 0)
-     (tool-bar-lines . 0)
-     (unsplittable . t)
-     (left-fringe . 10)))
-  ;; Increase the indentation for better useability.
-  (speedbar-indentation-width 3)
-  ;; make speedbar update automaticaly, and dont use ugly icons(images)
-  (speedbar-update-flag t)
-  (speedbar-use-images nil)
-  :config
-  ;; list of supported file-extensions
-  ;; feel free to add to this list
-  (speedbar-add-supported-extension
-   (list
-    ;; lua and fennel(lisp that transpiles to lua)
-    ".lua"
-    ".fnl"
-    ".fennel"
-    ;; shellscript
-    ".sh"
-    ".bash";;is this ever used?
-    ;; web languages
-    ;; Hyper-Text-markup-language(html) and php
-    ".php"
-    ".html"
-    ".htm"
-    ;; ecma(java/type)-script
-    ".js"
-    ".json"
-    ".ts"
-    ;; stylasheets
-    ".css"
-    ".less"
-    ".scss"
-    ".sass"
-    ;; c/c++ and makefiles
-    ".c"
-    ".cpp"
-    ".h"
-    "makefile"
-    "MAKEFILE"
-    "Makefile"
-    ;; runs on JVM, java,kotlin etc
-    ".java"
-    ".kt";;this is for kotlin
-    ".mvn"
-    ".gradle" ".properties";; this is for gradle-projects
-    ".clj";;lisp on the JVM
-    ;; lisps
-    ".cl"
-    ".el"
-    ".scm"
-    ".lisp"
-    ;; configuration
-    ".yaml"
-    ".toml"
-    ;; json is already in this list
-    ;; notes,markup and orgmode
-    ".md"
-    ".markdown"
-    ".org"
-    ".txt"
-    "README"
-    ;; Jupyter Notebooks
-    ".ipynb")))
 
-;; Speedbar sidebar
-(use-package sr-speedbar
-  :preface
-  (defun minimal-emacs/sr-speedbar-toggle-smart ()
-    "Toggle sr-speedbar or kill it if already focused."
-    (interactive)
-    (if (string= (buffer-name) "*SPEEDBAR*")
-        ;; If currently in *SPEEDBAR*, switch and kill the buffer
-        (progn
-          (sr-speedbar-toggle)
-          (kill-buffer "*SPEEDBAR*"))
-      ;; Otherwise, toggle and focus
-      (progn
-        (sr-speedbar-toggle)
-        (sr-speedbar-select-window))))
+;; Sidebar project exploration
+(use-package treemacs
   :bind
-  ("<f2>" . minimal-emacs/sr-speedbar-toggle-smart)
+  (("<f1>" . minimal-emacs/treemacs-toggle)
+   :map treemacs-mode-map
+   ("M-n" . treemacs-root-down)
+   ("M-p" . treemacs-root-up))
+  :preface
+  (defun minimal-emacs/treemacs-toggle ()
+    "Toggle treemacs or kill it if already focused."
+    (interactive)
+    (if (treemacs-is-treemacs-window-selected?)
+        (treemacs-quit)
+      (treemacs-add-and-display-current-project-exclusively)))
   :custom
-  (sr-speedbar-right-side nil))
+  (treemacs-indentation 2)
+  (treemacs-indentation-string " ")
+  (treemacs-is-never-other-window nil)
+  (treemacs-max-git-entries 5000)
+  (treemacs-no-png-images nil)
+  (treemacs-no-delete-other-windows t)
+  (treemacs-project-follow-cleanup nil)
+  (treemacs-persist-file (expand-file-name "emacs/treemacs-persist" xdg-cache))
+  (treemacs-position 'left)
+  (treemacs-recenter-after-project-jump 'always)
+  (treemacs-recenter-after-project-expand 'on-distance)
+  (treemacs-wide-toggle-width 70)
+  (treemacs-width 35)
+  (treemacs-width-is-initially-locked t)
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t)
+  (treemacs-fringe-indicator-mode 'always))
+
+(use-package treemacs-nerd-icons
+  :config
+  (treemacs-load-theme "nerd-icons"))
+
+(use-package treemacs-magit
+  :after (treemacs magit))
