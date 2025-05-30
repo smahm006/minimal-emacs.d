@@ -119,3 +119,6 @@
 
 (use-package treemacs-magit
   :after (treemacs magit))
+
+(use-package treemacs-icons-dired
+  :hook (dired-mode . treemacs-icons-dired-enable-once))
