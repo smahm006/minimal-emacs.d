@@ -1,8 +1,6 @@
 ;;; org.el --- Org mode customization  -*- no-byte-compile: t; lexical-binding: t; -*-
 
 (use-package org
-  :ensure t
-  :defer t
   :commands (org-mode org-version)
   :mode
   ("\\.org\\'" . org-mode)
@@ -14,7 +12,7 @@
   :bind
   (:map minimal-emacs/org-map
         ("c" . org-capture)
-        ("a" . org-agenda))  
+        ("a" . org-agenda))
   :custom
   ;; General
   (org-hide-leading-stars t)
@@ -28,7 +26,7 @@
   (org-fontify-quote-and-verse-blocks t)
   (org-confirm-babel-evaluate nil)
   (org-return-follows-link t)
-  (org-link-descriptive t)    
+  (org-link-descriptive t)
   (org-enforce-todo-dependencies t)
   (org-log-done 'time)
   ;; Babel
@@ -36,7 +34,7 @@
   (org-src-window-setup 'current-window)
   (org-src-strip-leading-and-trailing-blank-lines t)
   (org-src-preserve-indentation t)
-  (org-src-tab-acts-natively t))    
+  (org-src-tab-acts-natively t))
 
 ;; Modernize the look of org
 (use-package org-superstar

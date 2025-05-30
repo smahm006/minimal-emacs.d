@@ -16,10 +16,12 @@
 
 ;; Icon settings
 (use-package nerd-icons
+  :ensure t
   :custom
   (nerd-icons-font-family "Symbols Nerd Font Mono"))
 
 (use-package nerd-icons-completion
+  :ensure t
   :after marginalia vertico
   :hook
   (marginalia-mode . nerd-icons-completion-marginalia-setup)
@@ -27,6 +29,7 @@
   (nerd-icons-completion-mode))
 
 (use-package nerd-icons-corfu
+  :ensure t
   :after nerd-icons corfu
   :init
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
@@ -40,6 +43,7 @@
 
 ;; Modeline settings
 (use-package doom-modeline
+  :ensure t
   :hook (after-init . doom-modeline-mode)
   :config
   (setq line-number-mode t)

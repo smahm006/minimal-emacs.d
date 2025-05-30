@@ -76,10 +76,10 @@
   (setq consult-narrow-key "<"))
 
 (use-package vertico
-  :ensure t
-  :defer t
   :commands vertico-mode
-  :hook (after-init . vertico-mode))
+  :hook (after-init . vertico-mode)
+  :custom
+  (vertico-cycle t))
 
 (use-package orderless
   :ensure t
@@ -89,14 +89,10 @@
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package marginalia
-  :ensure t
-  :defer t
   :commands (marginalia-mode marginalia-cycle)
   :hook (after-init . marginalia-mode))
 
 (use-package embark
-  :ensure t
-  :defer t
   :commands (embark-act
              embark-dwim
              embark-export
@@ -122,8 +118,6 @@
   (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package corfu
-  :ensure t
-  :defer t
   :commands (corfu-mode global-corfu-mode)
   :hook
   ((after-init . global-corfu-mode)

@@ -76,6 +76,9 @@
 ;; User Interface configuration
 (minimal-emacs-load-user-init "config/ui.el")
 
+;; Backup configuration
+(minimal-emacs-load-user-init "config/backup.el")
+
 ;; User Experience configuration
 (minimal-emacs-load-user-init "config/ux.el")
 

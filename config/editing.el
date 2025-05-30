@@ -52,7 +52,6 @@
 
 ;; Nicer interface to Query-Replace
 (use-package visual-replace
-  :ensure t
   :bind (([remap query-replace] . visual-replace)
          :map isearch-mode-map
          ("M-%" . visual-replace-from-isearch))
@@ -64,8 +63,6 @@
 
 ;; Edit multiple lines at once
 (use-package multiple-cursors
-  :ensure t
-  :defer t
   :bind (:map minimal-emacs/mc-map
               ("<escape>" . mc/keyboard-quit)
               ("r" . mc/mark-all-in-region-regexp)
@@ -100,7 +97,6 @@
     (setq vundo-glyph-alist vundo-unicode-symbols)))
 
 (use-package undo-fu
-  :init
   :bind (([remap undo] . undo-fu-only-undo)
          ([remap undo-redo] . undo-fu-only-redo))
   :custom

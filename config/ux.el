@@ -5,59 +5,8 @@
 (setq pixel-scroll-precision-mode (display-graphic-p))    ; Enable pixel-wise scrolling
 (setq pixel-scroll-precision-use-momentum t)              ; Enable momentum for scrolling lagre buffers
 
-;; Backup settings
-(add-hook 'after-init-hook #'savehist-mode)
-(add-hook 'after-init-hook #'save-place-mode)
-(add-hook 'after-init-hook #'global-auto-revert-mode)
-(add-hook 'after-init-hook #'(lambda()
-                               (let ((inhibit-message t))
-                                 (recentf-mode 1))))
-(add-hook 'kill-emacs-hook #'recentf-cleanup)
-(setq backup-by-copying t)                              ; Backs up by copying instead of renaming
-(setq vc-make-backup-files t)                           ; Back up version-controlled files
-(setq version-control t)                                ; Enable versioned backups
-(setq make-backup-files t)                              ; Make backups of saved files
-(setq kept-new-versions 100)                            ; Keep 100 newest versions
-(setq kept-old-versions 2)                              ; Keep 2 oldest versions
-(setq delete-old-versions t)                            ; Delete excess backups
-(setq delete-by-moving-to-trash t)                      ; Move backups to trash on delete
-(setq auto-save-default t)                              ; Enable auto-saving
-(setq auto-save-timeout 30)                             ; Seconds before auto-save triggers
-(setq auto-save-interval 300)                           ; Keystrokes before auto-save triggers
-(setq auto-save-list-file-prefix nil)                   ; Disable auto-save list files
-(setq history-delete-duplicates t)                      ; Remove duplicates from history
-(setq history-length 500)                               ; History length
-(setq savehist-file (format "%s/emacs/history" xdg-cache))
-(setq savehist-additional-variables
-      '(kill-ring search-ring regexp-search-ring))
-
-;; Define directories for backups and autosaves
-(defvar backup-session-dir (format "%s/emacs/backups/session/" xdg-data))
-(minimal-emacs/mkdir backup-session-dir)
-(defvar backup-save-dir (format "%s/emacs/backups/save/" xdg-data))
-(minimal-emacs/mkdir backup-save-dir)
-(let ((auto-save-dir (format "%s/emacs/auto-save/" xdg-cache)))
-  (minimal-emacs/mkdir auto-save-dir)
-  (setq auto-save-file-name-transforms `((".*" ,auto-save-dir t))))
-
-;; Set where Emacs saves regular backups
-(setq backup-directory-alist `(("." . ,backup-save-dir)))
-
-;; Define the custom backup function
-(defun minimal-emacs/backup-buffer ()
-  "Make a session backup at the first save of each emacs session and a save backup on each subsequent save."
-  (when (not buffer-backed-up)
-    (let ((backup-directory-alist `(("." . ,backup-session-dir)))
-          (kept-new-versions 3))
-      (backup-buffer)))
-  (let ((buffer-backed-up nil))
-    (backup-buffer)))
-(add-hook 'before-save-hook #'minimal-emacs/backup-buffer)
-
 ;; Window Management
 (use-package ace-window
-  :ensure t
-  :defer t
   :autoload ace-display-buffer
   :init
   (winner-mode)
