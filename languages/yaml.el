@@ -6,16 +6,16 @@
          ("\\.yaml\\'" . yaml-ts-mode))
   :hook
   (yaml-ts-mode . (lambda ()
-                    (define-key minimal-emacs/run-map (kbd "c") #'minimal-emacs/yaml-check)
-                    (define-key minimal-emacs/run-map (kbd "f") #'minimal-emacs/yaml-format)))
+                    (define-key me/run-map (kbd "c") #'me/yaml-check)
+                    (define-key me/run-map (kbd "f") #'me/yaml-format)))
   :preface
-  (defun minimal-emacs/yaml-format ()
+  (defun me/yaml-format ()
     "Format buffer using yamlfmt"
     (interactive)
     (let ((output (shell-command-to-string (format "yamlfmt -quiet %s" (shell-quote-argument buffer-file-name)))))
       (message "%s" (string-trim output)))
-    (minimal-emacs/revert-buffer-no-confirm))
-  (defun minimal-emacs/yaml-check ()
+    (me/revert-buffer-no-confirm))
+  (defun me/yaml-check ()
     "Compile current buffer file with yaml."
     (interactive)
     (compile (format "yamllint -f standard %s" (shell-quote-argument buffer-file-name))))
@@ -26,4 +26,6 @@
 
 (use-package yaml-pro
   :hook
-  (yaml-ts-mode . yaml-pro-ts-mode))
+  (yaml-ts-mode . yaml-pro-ts-mode)
+  :custom
+  (yaml-pro-ts-yank-subtrees nil))

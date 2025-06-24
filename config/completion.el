@@ -28,7 +28,7 @@
          :map minibuffer-local-map
          ("M-s" . consult-history)
          ("M-r" . consult-history)
-         :map minimal-emacs/goto-map
+         :map me/goto-map
          ("e" . consult-compile-error)
          ("f" . consult-flymake)
          ("g" . consult-goto-line)
@@ -37,7 +37,7 @@
          ("k" . consult-global-mark)
          ("i" . consult-imenu)
          ("I" . consult-imenu-multi)
-         :map minimal-emacs/search-map
+         :map me/search-map
          ("f" . consult-find)
          ("F" . consult-locate)
          ("g" . consult-grep)
@@ -136,10 +136,6 @@
         ("SPC" . corfu-insert-separator)
         ("<escape>"  . corfu-quit))
   :custom
-  ;; Hide commands in M-x which do not apply to the current mode.
-  (read-extended-command-predicate #'command-completion-default-include-p)
-  ;; Disable Ispell completion function
-  (text-mode-ispell-word-completion nil)
   (tab-always-indent t)               ; Do not use TAB for completion
   (corfu-cycle t)                     ; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                      ; Enable auto completion
@@ -188,9 +184,9 @@
 ;; Snippet completion
 (use-package tempel
   :hook
-  (conf-mode . minimal-emacs/tempel-setup-capf)
-  (prog-mode . minimal-emacs/tempel-setup-capf)
-  (text-mode . minimal-emacs/tempel-setup-capf)
+  (conf-mode . me/tempel-setup-capf)
+  (prog-mode . me/tempel-setup-capf)
+  (text-mode . me/tempel-setup-capf)
   :bind (("M-+" . tempel-expand)
          ("M-*" . tempel-insert)
          (:map tempel-map
@@ -198,7 +194,7 @@
                ("C-M-p" . tempel-previous)))
   :preface
   ;; Setup completion at point
-  (defun minimal-emacs/tempel-setup-capf ()
+  (defun me/tempel-setup-capf ()
     ;; Add the Tempel Capf to `completion-at-point-functions'.
     (setq-local completion-at-point-functions
                 (cons #'tempel-complete

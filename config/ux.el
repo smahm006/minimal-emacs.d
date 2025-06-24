@@ -12,11 +12,11 @@
   (winner-mode)
   :bind
   (("M-o" . ace-window)
-   ("M-O" . minimal-emacs/ace-window-prefix)
-   ("M-u" . minimal-emacs/toggle-fullscreen-window)
-   ([remap split-window-right] . minimal-emacs/hsplit-last-window)
-   ([remap split-window-below] . minimal-emacs/vsplit-last-window)
-   (:map minimal-emacs/window-map
+   ("M-O" . me/ace-window-prefix)
+   ("M-u" . me/toggle-fullscreen-window)
+   ([remap split-window-right] . me/hsplit-last-window)
+   ([remap split-window-below] . me/vsplit-last-window)
+   (:map me/window-map
          ("b" . balance-windows)
          ("c" . recenter-top-bottom)
          ("i" . enlarge-window)
@@ -30,17 +30,17 @@
          ("+" . text-scale-increase)
          ("=" . (lambda () (interactive) (text-scale-increase 0)))))
   :preface
-  (defun minimal-emacs/hsplit-last-window ()
+  (defun me/hsplit-last-window ()
     "Focus to the last created horizontal window."
     (interactive)
     (split-window-horizontally)
     (other-window 1))
-  (defun minimal-emacs/vsplit-last-window ()
+  (defun me/vsplit-last-window ()
     "Focus to the last created vertical window."
     (interactive)
     (split-window-vertically)
     (other-window 1))
-  (defun minimal-emacs/toggle-fullscreen-window ()
+  (defun me/toggle-fullscreen-window ()
     "Toggle a buffer as fullscreen"
     (interactive)
     (if (= 1 (length (window-list)))
@@ -48,7 +48,7 @@
       (progn
         (window-configuration-to-register '_)
         (delete-other-windows))))
-  (defun minimal-emacs/ace-window-prefix ()
+  (defun me/ace-window-prefix ()
     "https://karthinks.com/software/emacs-window-management-almanac/#a-window-prefix-command-for-ace-window"
     (interactive)
     (display-buffer-override-next-command
@@ -76,23 +76,23 @@
   :ensure nil
   :bind
   (:map ctl-x-map
-   ("B" . minimal-emacs/switch-to-previous-buffer)
-   :map minimal-emacs/buffer-map
-   ("r" . minimal-emacs/rename-file-and-buffer)
-   ("d" . minimal-emacs/delete-file-and-buffer)
-   ("o" . minimal-emacs/kill-other-buffers))
-  :init (minimal-emacs/protected-buffers)
+   ("B" . me/switch-to-previous-buffer)
+   :map me/buffer-map
+   ("r" . me/rename-file-and-buffer)
+   ("d" . me/delete-file-and-buffer)
+   ("o" . me/kill-other-buffers))
+  :init (me/protected-buffers)
   :preface
   (defvar protected-buffers '("*scratch*" "*Messages*"))
-  (defun minimal-emacs/protected-buffers ()
+  (defun me/protected-buffers ()
     "Protect some buffers from being killed."
     (dolist (buffer protected-buffers)
       (with-current-buffer buffer
         (emacs-lock-mode 'kill))))
-  (defun minimal-emacs/switch-to-previous-buffer ()
+  (defun me/switch-to-previous-buffer ()
     (interactive)
     (switch-to-buffer (other-buffer (current-buffer) 1)))
-  (defun minimal-emacs/rename-file-and-buffer ()
+  (defun me/rename-file-and-buffer ()
     "Rename the current buffer and file it is visiting."
     (interactive)
     (let ((filename (buffer-file-name)))
@@ -104,7 +104,7 @@
            (t
             (rename-file filename new-name t)
             (set-visited-file-name new-name t t)))))))
-  (defun minimal-emacs/delete-file-and-buffer ()
+  (defun me/delete-file-and-buffer ()
     "Kill the current buffer and deletes the file it is visiting."
     (interactive)
     (let ((filename (buffer-file-name)))
@@ -115,7 +115,7 @@
             (delete-file filename)
             (message "Deleted file %s" filename)
             (kill-buffer))))))
-  (defun minimal-emacs/kill-other-buffers ()
+  (defun me/kill-other-buffers ()
     "Kill other buffers except current one and protected buffers."
     (interactive)
     (eglot-shutdown-all)
@@ -145,10 +145,10 @@
    :map project-prefix-map
    ("l" . project-list-buffers)
    ("F" . project-forget-project)
-   ("S" . minimal-emacs/project-save-all-buffers)
+   ("S" . me/project-save-all-buffers)
    ("s" . project-search))
   :preface
-  (defun minimal-emacs/project-save-all-buffers (&optional proj arg)
+  (defun me/project-save-all-buffers (&optional proj arg)
     "Save all file-visiting buffers in project without asking."
     (interactive)
     (let* ((proj (or proj (project-current)))
@@ -179,8 +179,11 @@
   :bind
   (:map dired-mode-map
         ("<tab>" . dired-find-file)
+        ("M-n" . dired-find-file)
         ("<backtab>" . dired-up-directory)
+        ("M-p" . dired-up-directory)
         ( "."     . dired-omit-mode)
+        ("C-+" . dired-create-empty-file)
         ("Q" . (lambda ()
                  (interactive)
                  (mapc (lambda (buffer)
@@ -188,12 +191,13 @@
                                    (string-match-p "^\\*image-dired" (buffer-name buffer)))
                            (kill-buffer buffer)))
                        (buffer-list)))))
-  (:map minimal-emacs/file-map
+  (:map me/file-map
         ("d" . (lambda ()
                  (interactive)
                  (dired-jump)
                  (revert-buffer)))
-        ("D" . dired))
+        ("D" . dired)
+        ("f" . find-file-at-point))
   :custom
   (dired-omit-files (rx (seq bol ".")))
   (dired-listing-switches "-goah --group-directories-first --time-style=long-iso -v")

@@ -6,26 +6,26 @@
   :hook
   (go-ts-mode . eglot-ensure)
   (go-ts-mode . (lambda ()
-                  (define-key minimal-emacs/run-map (kbd "r") #'minimal-emacs/go-run)
-                  (define-key minimal-emacs/run-map (kbd "c") #'minimal-emacs/go-check)
-                  (define-key minimal-emacs/run-map (kbd "f") #'minimal-emacs/go-format)))
+                  (define-key me/run-map (kbd "r") #'me/go-run)
+                  (define-key me/run-map (kbd "c") #'me/go-check)
+                  (define-key me/run-map (kbd "f") #'me/go-format)))
   (go-ts-mode . (lambda ()
                   (setq-local eglot-workspace-configuration
 							  '((:gopls .
 										((staticcheck . t)
 										 (matcher . "CaseSensitive")))))))
   :preface
-  (defun minimal-emacs/go-run ()
+  (defun me/go-run ()
     "Compile current buffer file with go."
     (interactive)
     (compile (format "go run %s" (shell-quote-argument buffer-file-name))))
-  (defun minimal-emacs/go-format ()
+  (defun me/go-format ()
     "Format current buffer file with goimports."
     (interactive)
     (let ((output (shell-command-to-string (format "goimports -w %s && gofumpt -w %s" (shell-quote-argument buffer-file-name) (shell-quote-argument buffer-file-name)))))
       (message "%s" (string-trim output)))
-    (minimal-emacs/revert-buffer-no-confirm))
-  (defun minimal-emacs/go-check ()
+    (me/revert-buffer-no-confirm))
+  (defun me/go-check ()
     "Check current buffer file with goimports."
     (interactive)
     (compile (format "gofumpt -e %s" (shell-quote-argument buffer-file-name))))

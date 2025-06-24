@@ -8,22 +8,22 @@
   (bash-ts-mode . eglot-ensure)
   :hook
   (bash-ts-mode . (lambda ()
-                    (define-key minimal-emacs/run-map (kbd "r") #'minimal-emacs/bash-run)
-                    (define-key minimal-emacs/run-map (kbd "c") #'minimal-emacs/bash-check)
-                    (define-key minimal-emacs/run-map (kbd "f") #'minimal-emacs/bash-format)))
+                    (define-key me/run-map (kbd "r") #'me/bash-run)
+                    (define-key me/run-map (kbd "c") #'me/bash-check)
+                    (define-key me/run-map (kbd "f") #'me/bash-format)))
   :preface
-  (defun minimal-emacs/bash-run ()
+  (defun me/bash-run ()
     "Compile current buffer file with sh."
     (interactive)
     (compile (format "bash %s" buffer-file-name)))
-  (defun minimal-emacs/bash-format ()
+  (defun me/bash-format ()
     "Format current buffer with shfmt."
     (interactive)
     (let ((output (shell-command-to-string
                    (format "shfmt -w %s" (shell-quote-argument buffer-file-name)))))
       (message "%s" (string-trim output)))
-    (minimal-emacs/revert-buffer-no-confirm))
-  (defun minimal-emacs/bash-check ()
+    (me/revert-buffer-no-confirm))
+  (defun me/bash-check ()
     "Compile current buffer file with sh."
     (interactive)
     (compile (format "shellcheck %s" buffer-file-name)))

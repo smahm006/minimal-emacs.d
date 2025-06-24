@@ -18,7 +18,7 @@
 
 ;; Better editing functions
 ;; From https://github.com/bbatsov/crux and my own research
-(defun minimal-emacs/backward-kill-thing ()
+(defun me/backward-kill-thing ()
   "Delete sexp, symbol, word or whitespace backward depending on the context at point."
   (interactive)
   (let ((bounds (seq-some #'bounds-of-thing-at-point '(sexp symbol word))))
@@ -34,7 +34,8 @@
      ;; If none of the above, delete one character backward
      (t
       (kill-backward-chars 1)))))
-(defun minimal-emacs/kill-region-or-line ()
+
+(defun me/kill-region-or-line ()
   "Kill the region if active, otherwise kill the current line.
    With a prefix argument, copy the entire buffer content to the kill-ring."
   (interactive)
@@ -46,9 +47,71 @@
         (kill-region (region-beginning) (region-end) t)
       (kill-region (line-beginning-position) (line-beginning-position 2)))))
 
-;; Key remappings and bindings
-(global-set-key [remap kill-region] #'minimal-emacs/kill-region-or-line)
-(global-set-key (kbd "C-<backspace>") #'minimal-emacs/backward-kill-thing)
+(defun me/smart-kill-line-backwards ()
+  "Insert an empty line above the current line.
+      Position the cursor at it's beginning, according to the current mode."
+  (interactive)
+  (kill-line 0)
+  (indent-according-to-mode))
+
+(defun me/smarter-move-beginning-of-line (arg)
+  "Move point back to indentation of beginning of line."
+  (interactive "^p")
+  (setq arg (or arg 1))
+  (when (/= arg 1)
+    (let ((line-move-visual nil))
+      (forward-line (1- arg))))
+  (let ((orig-point (point)))
+    (back-to-indentation)
+    (when (= orig-point (point))
+      (move-beginning-of-line 1))))
+
+(defun me/smart-kill-whole-line (&optional arg)
+  "A simple wrapper around `kill-whole-line' that respects indentation."
+  (interactive "P")
+  (kill-whole-line arg)
+  (back-to-indentation))
+
+(defun me/move-line-up ()
+  "Move up the current line."
+  (interactive)
+  (transpose-lines 1)
+  (forward-line -2)
+  (indent-according-to-mode))
+
+(defun me/move-line-down ()
+  "Move down the current line."
+  (interactive)
+  (forward-line 1)
+  (transpose-lines 1)
+  (forward-line -1)
+  (indent-according-to-mode))
+
+(defun me/smart-open-line-below ()
+  "Insert an empty line after the current line.
+        Position the cursor at its beginning, according to the current mode."
+  (interactive)
+  (move-end-of-line nil)
+  (newline-and-indent))
+
+(defun me/smart-open-line-above ()
+  "Insert an empty line above the current line.
+      Position the cursor at it's beginning, according to the current mode."
+  (interactive)
+  (move-beginning-of-line nil)
+  (newline-and-indent)
+  (forward-line -1)
+  (indent-according-to-mode))
+
+;; Bind custom functions
+(global-set-key [remap kill-region] #'me/kill-region-or-line)
+(global-set-key (kbd "M-<backspace>") #'me/smart-kill-line-backwards)
+(global-set-key (kbd "C-<backspace>") #'me/backward-kill-thing)
+(global-set-key (kbd "C-<return>") #'me/smart-open-line-below)
+(global-set-key (kbd "M-<return>") #'me/smart-open-line-above)
+(global-set-key (kbd "M-p") #'me/move-line-up)
+(global-set-key (kbd "M-n") #'me/move-line-down)
+(global-set-key (kbd "C-a") #'me/smarter-move-beginning-of-line)
 
 ;; Nicer interface to Query-Replace
 (use-package visual-replace
@@ -63,12 +126,12 @@
 
 ;; Edit multiple lines at once
 (use-package multiple-cursors
-  :bind (:map minimal-emacs/mc-map
+  :bind (:map me/mc-map
               ("<escape>" . mc/keyboard-quit)
               ("r" . mc/mark-all-in-region-regexp)
               ("b" . mc/edit-beginnings-of-lines)
               ("e" . mc/edit-ends-of-lines)
-              :repeat-map minimal-emacs/mc-map
+              :repeat-map me/mc-map
               ("n" . mc/mark-next-like-this)
               ("p" . mc/mark-previous-like-this)
               :exit

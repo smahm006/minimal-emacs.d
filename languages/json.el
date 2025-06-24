@@ -4,9 +4,9 @@
   :mode (("\\.json\\'"  . json-ts-mode))
   :hook
   (json-ts-mode . (lambda ()
-                    (define-key minimal-emacs/run-map (kbd "f") #'minimal-emacs/json-format)))
+                    (define-key me/run-map (kbd "f") #'me/json-format)))
   :preface
-  (defun minimal-emacs/json-format ()
+  (defun me/json-format ()
     "Format the current buffer as JSON using jq if available, else python -m json.tool."
     (interactive)
     (let* ((jq-exists (executable-find "jq"))
@@ -19,4 +19,4 @@
                           (shell-quote-argument buffer-file-name))))
            (output (shell-command cmd)))
       (message "%s" output)
-      (minimal-emacs/revert-buffer-no-confirm))))
+      (me/revert-buffer-no-confirm))))

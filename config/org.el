@@ -7,10 +7,10 @@
   :init
   (setq org-directory (format "%s/org/" xdg-home))
   (let ((org-archive-directory (format "%s/archives/" org-directory)))
-    (minimal-emacs/mkdir org-archive-directory)
+    (me/mkdir org-archive-directory)
     (setq org-archive-location (format "%s/%%s::" org-archive-directory)))
   :bind
-  (:map minimal-emacs/org-map
+  (:map me/org-map
         ("c" . org-capture)
         ("a" . org-agenda))
   :custom
@@ -73,7 +73,7 @@
               ("g" . org-agenda-goto))
   :config
   (let ((org-agenda-directory (format "%s/agenda/" org-directory)))
-    (minimal-emacs/mkdir org-agenda-directory)
+    (me/mkdir org-agenda-directory)
     (org-agenda-files org-agenda-directory)))
 
 
@@ -81,7 +81,7 @@
 (use-package denote
   :hook (dired-mode . denote-dired-mode)
   :bind
-  (:map minimal-emacs/note-map
+  (:map me/note-map
         (("n" . denote)
          ("r" . denote-rename-file)
          ("l" . denote-link)
@@ -89,14 +89,14 @@
          ("d" . denote-sort-dired)))
   :config
   (let ((org-notes-directory (format "%s/notes/" org-directory)))
-    (minimal-emacs/mkdir org-notes-directory)
+    (me/mkdir org-notes-directory)
     (setq denote-directory org-notes-directory))
   (denote-rename-buffer-mode 1))
 
 (use-package consult-denote
   :after denote consult
   :bind
-  (:map minimal-emacs/note-map
+  (:map me/note-map
         ("f" . consult-denote-find)
         ("g" . consult-denote-grep))
   :custom

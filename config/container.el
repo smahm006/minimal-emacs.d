@@ -26,12 +26,13 @@
 ;; Docker
 (use-package docker
   :bind
-  (:map minimal-emacs/container-map
+  (:map me/container-map
         ("d c" . docker-containers)
         ("d i" . docker-images)
         ("d u" . docker-compose-up)
         ("d d" . docker-compose-down)
-        ("d b" . docker-compose-build)))
+        ("d b" . docker-compose-build)
+        ("d l" . docker-compose-logs)))
 
 (use-package dockerfile-mode
   :mode ("/Dockerfile\\'" . dockerfile-ts-mode)
@@ -42,10 +43,20 @@
 ;; Vagrant
 (use-package vagrant
   :bind
-  (:map minimal-emacs/container-map
+  (:map me/container-map
         ("v s" . vagrant-status)
         ("v u" . vagrant-up)
         ("v d" . vagrant-halt)
         ("v k" . vagrant-destroy)
         ("v p" . vagrant-provision)))
 (use-package vagrant-tramp)
+
+;; Kubernetes
+(use-package kubernetes
+  :commands (kubernetes-overview)
+  :bind
+  (:map me/container-map
+        ("k k" . kubernetes-overview))
+  :config
+  (setq kubernetes-poll-frequency 3600
+        kubernetes-redraw-frequency 3600))

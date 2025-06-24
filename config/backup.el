@@ -23,7 +23,7 @@
   :bind
   ([remap recentf-open] . consult-recent-file)
   ([remap recentf-open-files] . consult-recent-file)
-  (:map minimal-emacs/file-map
+  (:map me/file-map
         ("r" . recentf-open))
   :custom
   (recentf-keep '(file-remote-p file-readable-p))
@@ -35,7 +35,7 @@
 (use-package auto-revert
   :ensure nil
   :bind
-  (:map minimal-emacs/file-map
+  (:map me/file-map
         ("x" . revert-buffer))
   :hook
   (after-init . global-auto-revert-mode)
@@ -62,18 +62,18 @@
 
 ;; Define directories for backups and autosaves
 (defvar backup-session-dir (format "%s/emacs/backups/session/" xdg-data))
-(minimal-emacs/mkdir backup-session-dir)
+(me/mkdir backup-session-dir)
 (defvar backup-save-dir (format "%s/emacs/backups/save/" xdg-data))
-(minimal-emacs/mkdir backup-save-dir)
+(me/mkdir backup-save-dir)
 (let ((auto-save-dir (format "%s/emacs/auto-save/" xdg-cache)))
-  (minimal-emacs/mkdir auto-save-dir)
+  (me/mkdir auto-save-dir)
   (setq auto-save-file-name-transforms `((".*" ,auto-save-dir t))))
 
 ;; Set where Emacs saves regular backups
 (setq backup-directory-alist `(("." . ,backup-save-dir)))
 
 ;; Define the custom backup function
-(defun minimal-emacs/backup-buffer ()
+(defun me/backup-buffer ()
   "Make a session backup at the first save of each emacs session and a save backup on each subsequent save."
   (when (not buffer-backed-up)
     (let ((backup-directory-alist `(("." . ,backup-session-dir)))
@@ -81,10 +81,10 @@
       (backup-buffer)))
   (let ((buffer-backed-up nil))
     (backup-buffer)))
-(add-hook 'before-save-hook #'minimal-emacs/backup-buffer)
+(add-hook 'before-save-hook #'me/backup-buffer)
 
 ;; Traverse file backups
 (use-package backup-walker
   :bind
-  (:map minimal-emacs/file-map
+  (:map me/file-map
         ("b" . backup-walker-start)))

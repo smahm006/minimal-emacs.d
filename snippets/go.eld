@@ -2,6 +2,7 @@ go-mode go-ts-mode
 (imp "import " q)
 (impn "import (" n> q n ")")
 (pf "fmt.Printf("q")")
+(spf "fmt.Sprintf("q")")
 (pln "fmt.Println(" q ")")
 (db "Debug.Printf(\"\\n" p "\\n\\n%#v\\n\", " q ")")
 (dl "Debug.Println(" q ")")

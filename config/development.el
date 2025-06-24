@@ -5,9 +5,12 @@
   :ensure nil
   :after project
   :hook
-  ((eglot-managed-mode . minimal-emacs/eglot-capf))
+  (eglot-managed-mode . me/eglot-capf)
+  (eglot-managed-mode . (lambda ()
+                          (setq eldoc-documentation-strategy
+                                'eldoc-documentation-compose-eagerly)))
   :bind
-  (:map minimal-emacs/lsp-map
+  (:map me/lsp-map
         ("l" . eglot)
         ("f" . eglot-format-buffer)
         ("R" . eglot-reconnect)
@@ -18,7 +21,7 @@
         ("q" . eglot-code-action-quickfix)
         ("r" . eglot-rename))
   :preface
-  (defun minimal-emacs/eglot-capf ()
+  (defun me/eglot-capf ()
     (setq-local completion-at-point-functions
                 (cons (cape-capf-super
                        #'eglot-completion-at-point
@@ -49,17 +52,15 @@
   :custom
   (eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   :bind
-  (:map minimal-emacs/lsp-map
+  (:map me/lsp-map
         ("d" . eldoc-doc-buffer))
   :config
-  (eldoc-add-command-completions "paredit-")
-  (with-eval-after-load 'combobulate
-    (eldoc-add-command-completions "combobulate-")))
+  (eldoc-add-command-completions "paredit-"))
 
 (use-package eldoc-box
   :after eglot
   :bind
-  (:map minimal-emacs/lsp-map
+  (:map me/lsp-map
         ("D" . eldoc-box-hover-at-point-mode))
   :config
   (with-eval-after-load 'pixel-scroll

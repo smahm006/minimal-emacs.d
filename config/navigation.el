@@ -3,69 +3,9 @@
 ;; Jump to previous locations stored in the mark ring
 (setq set-mark-command-repeat-pop t)
 
-;; Better emacs functions
-;; From https://github.com/bbatsov/crux and my own research
-(defun minimal-emacs/smarter-move-beginning-of-line (arg)
-  "Move point back to indentation of beginning of line."
-  (interactive "^p")
-  (setq arg (or arg 1))
-  (when (/= arg 1)
-    (let ((line-move-visual nil))
-      (forward-line (1- arg))))
-  (let ((orig-point (point)))
-    (back-to-indentation)
-    (when (= orig-point (point))
-      (move-beginning-of-line 1))))
-(defun minimal-emacs/smart-kill-whole-line (&optional arg)
-  "A simple wrapper around `kill-whole-line' that respects indentation."
-  (interactive "P")
-  (kill-whole-line arg)
-  (back-to-indentation))
-(defun minimal-emacs/move-line-up ()
-  "Move up the current line."
-  (interactive)
-  (transpose-lines 1)
-  (forward-line -2)
-  (indent-according-to-mode))
-(defun minimal-emacs/move-line-down ()
-  "Move down the current line."
-  (interactive)
-  (forward-line 1)
-  (transpose-lines 1)
-  (forward-line -1)
-  (indent-according-to-mode))
-(defun minimal-emacs/smart-open-line-below ()
-  "Insert an empty line after the current line.
-        Position the cursor at its beginning, according to the current mode."
-  (interactive)
-  (move-end-of-line nil)
-  (newline-and-indent))
-(defun minimal-emacs/smart-open-line-above ()
-  "Insert an empty line above the current line.
-      Position the cursor at it's beginning, according to the current mode."
-  (interactive)
-  (move-beginning-of-line nil)
-  (newline-and-indent)
-  (forward-line -1)
-  (indent-according-to-mode))
-(defun minimal-emacs/smart-kill-line-backwards ()
-  "Insert an empty line above the current line.
-      Position the cursor at it's beginning, according to the current mode."
-  (interactive)
-  (kill-line 0)
-  (indent-according-to-mode))
-
-(global-set-key (kbd "M-p") 'minimal-emacs/move-line-up)
-(global-set-key (kbd "M-n") 'minimal-emacs/move-line-down)
-(global-set-key (kbd "C-a") 'minimal-emacs/smarter-move-beginning-of-line)
-(global-set-key (kbd "C-<return>") 'minimal-emacs/smart-open-line-below)
-(global-set-key (kbd "M-<return>") 'minimal-emacs/smart-open-line-above)
-(global-set-key (kbd "M-<backspace>") 'minimal-emacs/smart-kill-line-backwards)
-
-
 ;; Jump to visible text using a char-based decision tree
 (use-package avy
-  :bind (:map minimal-emacs/search-map
+  :bind (:map me/search-map
               ("a" . avy-goto-char-timer))
   :preface
   (defun avy-action-embark (pt)
@@ -83,17 +23,45 @@
 ;; Sidebar project exploration
 (use-package treemacs
   :bind
-  (("<f1>" . minimal-emacs/treemacs-toggle)
+  (("<f1>" . me/treemacs-toggle)
+   ;; More dired like bindings
    :map treemacs-mode-map
+   ;; Navigation
+   ("n"   . treemacs-next-line)
+   ("p"   . treemacs-previous-line)
    ("M-n" . treemacs-root-down)
-   ("M-p" . treemacs-root-up))
+   ("M-p" . treemacs-root-up)
+   ("^"      . treemacs-root-up)
+   ("g"      . treemacs-refresh)
+   ;; File operations
+   ("C"      . treemacs-copy-file)
+   ("D"      . treemacs-delete-file)
+   ("R"      . treemacs-move-file)
+   ("+"      . treemacs-create-dir)
+   ("%"      . treemacs-create-file)
+   ;; Marking (similar to dired)
+   ("m"      . treemacs-mark-or-unmark-path-at-point)
+   ("u"      . treemacs-mark-or-unmark-path-at-point)
+   ("U"      . treemacs-reset-marks)
+   ("."      . treemacs-toggle-show-dotfiles)
+   ;; Misc
+   ("q"      . treemacs-quit)
+   ("?"      . treemacs-common-helpful-hydra)
+   ;; Opening files externally or in other windows
+   ("x"      . treemacs-visit-node-in-external-application)
+   ("o"      . treemacs-visit-node-ace))
   :preface
-  (defun minimal-emacs/treemacs-toggle ()
-    "Toggle treemacs or kill it if already focused."
+  (defun me/treemacs-toggle ()
+    "Toggle Treemacs or kill it if already focused. When opening, also sync to current file in project."
     (interactive)
     (if (treemacs-is-treemacs-window-selected?)
         (treemacs-quit)
-      (treemacs-add-and-display-current-project-exclusively)))
+      (let ((origin-window (selected-window)))
+        (treemacs-add-and-display-current-project-exclusively)
+        ;; Go back to original window before syncing
+        (select-window origin-window)
+        (treemacs-find-file)
+        (treemacs-select-window))))
   :custom
   (treemacs-indentation 2)
   (treemacs-indentation-string " ")
