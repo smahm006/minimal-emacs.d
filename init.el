@@ -38,6 +38,11 @@
     (setq use-short-answers t)
   (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
+;;; Features, warnings, and errors
+
+;; Disable warnings from the legacy advice API. They aren't useful.
+(setq ad-redefinition-action 'accept)
+
 ;;; Undo/redo
 
 (setq undo-limit (* 13 160000)
@@ -58,11 +63,6 @@
   ;; Ensure use-package is available
   (require 'use-package))
 
-;;; Features, warnings, and errors
-
-;; Disable warnings from the legacy advice API. They aren't useful.
-(setq ad-redefinition-action 'accept)
-
 ;;; Minibuffer
 
 ;; Allow nested minibuffers
@@ -76,13 +76,19 @@
 ;;; User interface
 
 ;; By default, Emacs "updates" its ui more often than it needs to
-(setq idle-update-delay 1.0)
+(setq which-func-update-delay 1.0)
+(setq idle-update-delay which-func-update-delay)  ;; Obsolete in >= 30.1
 
 (defalias #'view-hello-file #'ignore)  ; Never show the hello file
 
 ;; No beeping or blinking
 (setq visible-bell nil)
 (setq ring-bell-function #'ignore)
+
+;; In PGTK, this timeout introduces latency. Reducing it from the default 0.1
+;; improves responsiveness of childframes and related packages.
+(when (boundp 'pgtk-wait-for-event-timeout)
+  (setq pgtk-wait-for-event-timeout 0.001))
 
 ;;; Show-paren
 
@@ -97,13 +103,11 @@
       compilation-ask-about-save nil
       compilation-scroll-output 'first-error)
 
-;; Recenter to the middle of the window for `compile-goto-error', which is also
-;; used by `wgrep' and `embark-export'.
-(setq next-error-recenter '(4))
-
 ;;; Misc
 
-(setq whitespace-line-column nil)  ; whitespace-mode
+(setq custom-buffer-done-kill t)
+
+(setq whitespace-line-column nil)  ; Use the value of `fill-column'.
 
 ;; Can be activated with `display-line-numbers-mode'
 (setq-default display-line-numbers-width 3)
@@ -121,6 +125,16 @@
 (setq tramp-verbose 1)
 (setq tramp-completion-reread-directory-timeout 50)
 (setq remote-file-name-inhibit-cache 50)
+
+;; Automatically rescan the buffer for Imenu entries when `imenu' is invoked
+;; This ensures the index reflects recent edits.
+(setq imenu-auto-rescan t)
+
+;; Prevent truncation of long function names in `imenu' listings
+(setq imenu-max-item-length 160)
+
+;; Disable auto-adding a new line at the bottom when scrolling.
+(setq next-line-add-newlines nil)
 
 ;;; Files
 
@@ -169,6 +183,7 @@
 
 (setq vc-git-print-log-follow t)
 (setq vc-make-backup-files nil)  ; Do not backup version controlled files
+(setq vc-git-diff-switches '("--histogram"))  ; Faster algorithm for diffing.
 
 ;;; Auto save
 
@@ -234,10 +249,6 @@
 
 ;;; Frames and windows
 
-;; Resizing the Emacs frame can be costly when changing the font. Disable this
-;; to improve startup times with fonts larger than the system default.
-(setq frame-resize-pixelwise t)
-
 ;; However, do not resize windows pixelwise, as this can cause crashes in some
 ;; cases when resizing too many windows at once or rapidly.
 (setq window-resize-pixelwise nil)
@@ -249,6 +260,12 @@
 (setq window-divider-default-bottom-width 1
       window-divider-default-places t
       window-divider-default-right-width 1)
+
+;;; Fontification
+
+;; Disable fontification during user input to reduce lag in large buffers.
+;; Also helps marginally with scrolling performance.
+(setq redisplay-skip-fontification-on-input t)
 
 ;;; Scrolling
 
@@ -333,13 +350,18 @@
 ;; when the window is narrower than `truncate-partial-width-windows' characters.
 (setq truncate-partial-width-windows nil)
 
+;; Configure automatic indentation to be triggered exclusively by newline and
+;; DEL (backspace) characters.
+(setq-default electric-indent-chars '(?\n ?\^?))
+
 ;; Prefer spaces over tabs. Spaces offer a more consistent default compared to
 ;; 8-space tabs. This setting can be adjusted on a per-mode basis as needed.
 (setq-default indent-tabs-mode nil
               tab-width 4)
 
 ;; Enable indentation and completion using the TAB key
-(setq-default tab-always-indent nil)
+(setq tab-always-indent 'complete)
+(setq tab-first-completion 'word-or-paren-or-punct)
 
 ;; Perf: Reduce command completion overhead.
 (setq read-extended-command-predicate #'command-completion-default-include-p)
@@ -378,16 +400,22 @@
 
 (setq sh-indent-after-continuation 'always)
 
-;;; Dired
+;;; Dired and ls-lisp
 
 (setq dired-free-space nil
-      dired-dwim-target t  ; Propose a target for intelligent moving or copying.
+      dired-dwim-target t  ; Propose a target for intelligent moving/copying
       dired-deletion-confirmer 'y-or-n-p
       dired-filter-verbose nil
       dired-recursive-deletes 'top
       dired-recursive-copies 'always
-      dired-create-destination-dirs 'ask
-      image-dired-thumb-size 150)
+      dired-create-destination-dirs 'ask)
+
+;; This is a higher-level predicate that wraps `dired-directory-changed-p'
+;; with additional logic. This `dired-buffer-stale-p' predicate handles remote
+;; files, wdired, unreadable dirs, and delegates to dired-directory-changed-p
+;; for modification checks.
+(setq auto-revert-remote-files nil)
+(setq dired-auto-revert-buffer 'dired-buffer-stale-p)
 
 (setq dired-vc-rename-file t)
 
@@ -398,7 +426,18 @@
 (setq dired-omit-verbose nil)
 (setq dired-omit-files (concat "\\`[.]\\'"))
 
-;; ls-lisp
+;; Group directories first
+(when minimal-emacs-dired-group-directories-first
+  (with-eval-after-load 'dired
+    (let ((args "--group-directories-first -ahlv"))
+      (when (or (eq system-type 'darwin)
+                (eq system-type 'berkeley-unix))
+        (if-let* ((gls (executable-find "gls")))
+            (setq insert-directory-program gls)
+          (setq args nil)))
+      (when args
+        (setq dired-listing-switches args)))))
+
 (setq ls-lisp-verbosity nil)
 (setq ls-lisp-dirs-first t)
 
@@ -423,23 +462,30 @@
 
 ;;; Eglot
 
-(setq eglot-sync-connect 1
-      eglot-autoshutdown t)
+;; A setting of nil or 0 means Eglot will not block the UI at all, allowing
+;; Emacs to remain fully responsive, although LSP features will only become
+;; available once the connection is established in the background.
+(setq eglot-sync-connect 0)
+
+(setq eglot-autoshutdown t)  ; Shut down server after killing last managed buffer
 
 ;; Activate Eglot in cross-referenced non-project files
 (setq eglot-extend-to-xref t)
 
 ;; Eglot optimization
-(setq eglot-events-buffer-size 0)
-(setq eglot-report-progress nil)  ; Prevent Eglot minibuffer spam
+(if minimal-emacs-debug
+    (setq eglot-events-buffer-config '(:size 2000000 :format full))
+  ;; This reduces log clutter to improves performance.
+  (setq jsonrpc-event-hook nil)
+  ;; Reduce memory usage and avoid cluttering *EGLOT events* buffer
+  (setq eglot-events-buffer-size 0)  ; Deprecated
+  (setq eglot-events-buffer-config '(:size 0 :format short)))
+
+(setq eglot-report-progress minimal-emacs-debug)  ; Prevent minibuffer spam
 
 ;;; Flymake
 
-(setq flymake-fringe-indicator-position 'left-fringe)
 (setq flymake-show-diagnostics-at-end-of-line nil)
-
-;; Suppress the display of Flymake error counters when there are no errors.
-(setq flymake-suppress-zero-counters t)
 
 ;; Disable wrapping around when navigating Flymake errors.
 (setq flymake-wrap-around nil)
@@ -461,8 +507,8 @@
 
 (setq flyspell-issue-welcome-flag nil)
 
-;; Greatly improves flyspell performance by preventing messages from being
-;; displayed for each word when checking the entire buffer.
+;; Improves flyspell performance by preventing messages from being displayed for
+;; each word when checking the entire buffer.
 (setq flyspell-issue-message-flag nil)
 
 ;;; ispell
@@ -477,10 +523,10 @@
 
 (setq ibuffer-formats
       '((mark modified read-only locked
-              " " (name 40 40 :left :elide)
-				      " " (size 8 -1 :right)
-				      " " (mode 18 18 :left :elide) " " filename-and-process)
-	      (mark " " (name 16 -1) " " filename)))
+              " " (name 55 55 :left :elide)
+              " " (size 8 -1 :right)
+              " " (mode 18 18 :left :elide) " " filename-and-process)
+        (mark " " (name 16 -1) " " filename)))
 
 ;;; xref
 
@@ -500,13 +546,22 @@
 ;;; dabbrev
 
 (setq dabbrev-upcase-means-case-search t)
+
 (setq dabbrev-ignored-buffer-modes
       '(archive-mode image-mode docview-mode tags-table-mode pdf-view-mode))
+
+(setq dabbrev-ignored-buffer-regexps
+      '(;; - Buffers starting with a space (internal or temporary buffers)
+        "\\` "
+        ;; Tags files such as ETAGS, GTAGS, RTAGS, TAGS, e?tags, and GPATH,
+        ;; including versions with numeric extensions like <123>
+        "\\(?:\\(?:[EG]?\\|GR\\)TAGS\\|e?tags\\|GPATH\\)\\(<[0-9]+>\\)?"))
 
 ;;; Remove warnings from narrow-to-region, upcase-region...
 
 (dolist (cmd '(list-timers narrow-to-region upcase-region downcase-region
-                           erase-buffer scroll-left dired-find-alternate-file))
+                           list-threads erase-buffer scroll-left
+                           dired-find-alternate-file))
   (put cmd 'disabled nil))
 
 ;;; Load post init

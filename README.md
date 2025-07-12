@@ -9,11 +9,11 @@ The **minimal-emacs.d** project is a lightweight and optimized Emacs base (`init
 
 Building the *minimal-emacs.d* `init.el` and `early-init.el` was the result of **extensive research and testing** to fine-tune the best parameters and optimizations for an Emacs configuration. *(More information about the *minimal-emacs.d* features can be found here: [Features](#features).)*
 
-The *minimal-emacs.d* project includes two initialization files:
+<p align="center">
+<img src="https://jamescherti.com/misc/minimal-emacs.d.png" width="50%" />
+</p>
 
-- `early-init.el`: Loaded early in the Emacs startup process, before the graphical interface is initialized. Introduced in Emacs 27, this file configures settings that influence startup performance and GUI behavior prior to package loading.
-
-- `init.el`: Loaded after the graphical interface is initialized. This file contains user customizations, including variable settings, package loading, mode configurations, and keybindings.
+**Here are the instructions for installing minimal-emacs.d:** [Install minimal-emacs.d](#install-minimal-emacsd).
 
 ## Looking for the ideal starter kit to customize Emacs? You have found it.
 
@@ -23,7 +23,9 @@ The *minimal-emacs.d* project is:
 - **0 packages loaded / No forced modes:** Unlike other frameworks or starter kits, *minimal-emacs.d* does not impose modes or require packages. **You have full control** over which global or minor modes to enable and which packages to load with `require`.
 - **Customizable foundation:** Designed to be extended, not replaced. This README.md offers extensive recommendations for customizing your *minimal-emacs.d* configuration. (Reminder: [Never modify init.el and early-init.el. Modify these instead...](#customizations-never-modify-initel-and-early-initel-modify-these-instead))
 
-**Here are the instructions for installing minimal-emacs.d:** [Install minimal-emacs.d](#install-minimal-emacsd).
+The *minimal-emacs.d* project includes two initialization files:
+- `early-init.el`: Loaded early in the Emacs startup process, before the graphical interface is initialized. Introduced in Emacs 27, this file configures settings that influence startup performance and GUI behavior prior to package loading.
+- `init.el`: Loaded after the graphical interface is initialized. This file contains user customizations, including variable settings, package loading, mode configurations, and keybindings.
 
 ![](https://www.jamescherti.com/misc/screenshot-minimal-emacs-2.png)
 *(The theme shown in the screenshot above is ef-melissa-light, which is part of the ef-themes collection available on MELPA.)*
@@ -71,6 +73,9 @@ In addition to *minimal-emacs.d*, startup speed is influenced by your computer's
     - [Configuring LSP Servers with Eglot (built-in)](#configuring-lsp-servers-with-eglot-built-in)
     - [Session Management](#session-management)
     - [Configuring org-mode](#configuring-org-mode)
+    - [Configuring markdown-mode (e.g., README.md syntax)](#configuring-markdown-mode-eg-readmemd-syntax)
+    - [Tree-sitter Integration (Better Syntax Highlighting)](#tree-sitter-integration-better-syntax-highlighting)
+    - [Treemacs, a tree layout file explorer (Sidebar file explorer)](#treemacs-a-tree-layout-file-explorer-sidebar-file-explorer)
     - [Inhibit the mouse](#inhibit-the-mouse)
     - [Spell checker](#spell-checker)
     - [Asynchronous code formatting without cursor disruption](#asynchronous-code-formatting-without-cursor-disruption)
@@ -82,7 +87,7 @@ In addition to *minimal-emacs.d*, startup speed is influenced by your computer's
     - [Which other customizations can be interesting to add?](#which-other-customizations-can-be-interesting-to-add)
   - [Customizations: pre-early-init.el](#customizations-pre-early-initel)
     - [Reducing clutter in `~/.emacs.d` by redirecting files to `~/.emacs.d/var/`](#reducing-clutter-in-emacsd-by-redirecting-files-to-emacsdvar)
-    - [Configuring straight.el?](#configuring-straightel)
+    - [Configuring straight.el](#configuring-straightel)
     - [Configuring elpaca (package manager)](#configuring-elpaca-package-manager)
   - [Frequently asked questions](#frequently-asked-questions)
     - [Customizing Scroll Recentering](#customizing-scroll-recentering)
@@ -91,7 +96,6 @@ In addition to *minimal-emacs.d*, startup speed is influenced by your computer's
     - [How to load a local lisp file for machine-specific configurations?](#how-to-load-a-local-lisp-file-for-machine-specific-configurations)
     - [How to load Emacs customizations?](#how-to-load-emacs-customizations)
     - [How to increase gc-cons-threshold?](#how-to-increase-gc-cons-threshold)
-    - [How to change the outline-mode or outline-minor-mode Ellipsis (...) to (▼)?](#how-to-change-the-outline-mode-or-outline-minor-mode-ellipsis--to-)
     - [How to prevent Emacs from loading .dir-locals.el files?](#how-to-prevent-emacs-from-loading-dir-localsel-files)
     - [How to make minimal-emacs.d use an environment variable to change ~/.emacs.d to another directory?](#how-to-make-minimal-emacsd-use-an-environment-variable-to-change-emacsd-to-another-directory)
     - [Are post-early-init.el and pre-init.el the same file in terms of the logic?](#are-post-early-initel-and-pre-initel-the-same-file-in-terms-of-the-logic)
@@ -205,6 +209,10 @@ Native compilation enhances Emacs performance by converting Elisp code into nati
 
 2. Ensure all libraries are byte-compiled and native-compiled using [compile-angel.el](https://github.com/jamescherti/compile-angel.el). To install compile-angel, add the following code at the very beginning of your `~/.emacs.d/post-init.el` file, before all other packages:
 ```emacs-lisp
+;; Native compilation enhances Emacs performance by converting Elisp code into
+;; native machine code, resulting in faster execution and improved
+;; responsiveness.
+;;
 ;; Ensure adding the following compile-angel code at the very beginning
 ;; of your `~/.emacs.d/post-init.el` file, before all other packages.
 (use-package compile-angel
@@ -251,7 +259,9 @@ The recentf, savehist, saveplace, and auto-revert built-in packages are already 
 (add-hook 'after-init-hook #'(lambda()
                                (let ((inhibit-message t))
                                  (recentf-mode 1))))
-(add-hook 'kill-emacs-hook #'recentf-cleanup)
+
+(with-eval-after-load "recentf"
+  (add-hook 'kill-emacs-hook #'recentf-cleanup))
 
 ;; savehist is an Emacs feature that preserves the minibuffer history between
 ;; sessions. It saves the history of inputs in the minibuffer, such as commands,
@@ -289,6 +299,15 @@ When `auto-save-visited-mode` is enabled, Emacs will auto-save file-visiting buf
 This is different from `auto-save-mode`: `auto-save-mode` periodically saves all modified buffers, creating backup files, including those not associated with a file, while `auto-save-visited-mode` only saves file-visiting buffers after a period of idle time, directly saving to the file itself without creating backup files.
 
 ``` emacs-lisp
+;; When auto-save-visited-mode is enabled, Emacs will auto-save file-visiting
+;; buffers after a certain amount of idle time if the user forgets to save it
+;; with save-buffer or C-x s for example.
+;;
+;; This is different from auto-save-mode: auto-save-mode periodically saves
+;; all modified buffers, creating backup files, including those not associated
+;; with a file, while auto-save-visited-mode only saves file-visiting buffers
+;; after a period of idle time, directly saving to the file itself without
+;; creating backup files.
 (setq auto-save-visited-interval 5)   ; Save after 5 seconds if inactivity
 (auto-save-visited-mode 1)
 ```
@@ -303,9 +322,11 @@ Cape, or Completion At Point Extensions, extends the capabilities of in-buffer c
 
 To configure `corfu` and `cape`, add the following to `~/.emacs.d/post-init.el`:
 ``` emacs-lisp
+;; Corfu enhances in-buffer completion by displaying a compact popup with
+;; current candidates, positioned either below or above the point. Candidates
+;; can be selected by navigating up or down.
 (use-package corfu
   :ensure t
-  :defer t
   :commands (corfu-mode global-corfu-mode)
 
   :hook ((prog-mode . corfu-mode)
@@ -323,9 +344,11 @@ To configure `corfu` and `cape`, add the following to `~/.emacs.d/post-init.el`:
   :config
   (global-corfu-mode))
 
+;; Cape, or Completion At Point Extensions, extends the capabilities of
+;; in-buffer completion. It integrates with Corfu or the default completion UI,
+;; by providing additional backends through completion-at-point-functions.
 (use-package cape
   :ensure t
-  :defer t
   :commands (cape-dabbrev cape-file cape-elisp-block)
   :bind ("C-c p" . cape-prefix-map)
   :init
@@ -350,38 +373,41 @@ Embark integrates with these tools to provide context-sensitive actions and quic
 
 Add the following to `~/.emacs.d/post-init.el` to set up Vertico, Consult, and Embark:
 ``` emacs-lisp
+;; Vertico provides a vertical completion interface, making it easier to
+;; navigate and select from completion candidates (e.g., when `M-x` is pressed).
 (use-package vertico
   ;; (Note: It is recommended to also enable the savehist package.)
   :ensure t
-  :defer t
-  :commands vertico-mode
-  :hook (after-init . vertico-mode))
+  :config
+  (vertico-mode))
 
+;; Vertico leverages Orderless' flexible matching capabilities, allowing users
+;; to input multiple patterns separated by spaces, which Orderless then
+;; matches in any order against the candidates.
 (use-package orderless
-  ;; Vertico leverages Orderless' flexible matching capabilities, allowing users
-  ;; to input multiple patterns separated by spaces, which Orderless then
-  ;; matches in any order against the candidates.
   :ensure t
   :custom
   (completion-styles '(orderless basic))
   (completion-category-defaults nil)
   (completion-category-overrides '((file (styles partial-completion)))))
 
+;; Marginalia allows Embark to offer you preconfigured actions in more contexts.
+;; In addition to that, Marginalia also enhances Vertico by adding rich
+;; annotations to the completion candidates displayed in Vertico's interface.
 (use-package marginalia
-  ;; Marginalia allows Embark to offer you preconfigured actions in more contexts.
-  ;; In addition to that, Marginalia also enhances Vertico by adding rich
-  ;; annotations to the completion candidates displayed in Vertico's interface.
   :ensure t
-  :defer t
   :commands (marginalia-mode marginalia-cycle)
   :hook (after-init . marginalia-mode))
 
+;; Embark integrates with Consult and Vertico to provide context-sensitive
+;; actions and quick access to commands based on the current selection, further
+;; improving user efficiency and workflow within Emacs. Together, they create a
+;; cohesive and powerful environment for managing completions and interactions.
 (use-package embark
   ;; Embark is an Emacs package that acts like a context menu, allowing
   ;; users to perform context-sensitive actions on selected items
   ;; directly from the completion interface.
   :ensure t
-  :defer t
   :commands (embark-act
              embark-dwim
              embark-export
@@ -408,6 +434,8 @@ Add the following to `~/.emacs.d/post-init.el` to set up Vertico, Consult, and E
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
+;; Consult offers a suite of commands for efficient searching, previewing, and
+;; interacting with buffers, file contents, and more, improving various tasks.
 (use-package consult
   :ensure t
   :bind (;; C-c bindings in `mode-specific-map'
@@ -478,6 +506,17 @@ Add the following to `~/.emacs.d/post-init.el` to set up Vertico, Consult, and E
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
 
+  ;; Aggressive asynchronous that yield instantaneous results. (suitable for
+  ;; high-performance systems.) Note: Minad, the author of Consult, does not
+  ;; recommend aggressive values.
+  ;; Read: https://github.com/minad/consult/discussions/951
+  ;;
+  ;; However, the author of minimal-emacs.d uses these parameters to achieve
+  ;; immediate feedback from Consult.
+  ;; (setq consult-async-input-debounce 0.02
+  ;;       consult-async-input-throttle 0.05
+  ;;       consult-async-refresh-delay 0.02)
+
   :config
   (consult-customize
    consult-theme :preview-key '(:debounce 0.2 any)
@@ -499,18 +538,44 @@ Alternatively, `hs-minor-mode` offers basic code folding for blocks defined by c
 For example, to enable `outline-minor-mode` in Emacs Lisp:
 
 ``` emacs-lisp
-(add-hook 'emacs-lisp-mode-hook #'outline-minor-mode)
+;; The built-in outline-minor-mode provides structured code folding in modes
+;; such as Emacs Lisp and Python, allowing users to collapse and expand sections
+;; based on headings or indentation levels. This feature enhances navigation and
+;; improves the management of large files with hierarchical structures.
+(use-package outline
+  :ensure nil
+  :commands outline-minor-mode
+  :hook
+  ((emacs-lisp-mode . outline-minor-mode)
+   ;; Use " ▼" instead of the default ellipsis "..." for folded text to make
+   ;; folds more visually distinctive and readable.
+   (outline-minor-mode
+    .
+    (lambda()
+      (let* ((display-table (or buffer-display-table (make-display-table)))
+             (face-offset (* (face-id 'shadow) (ash 1 22)))
+             (value (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▼"))))
+        (set-display-table-slot display-table 'selective-display value)
+        (setq buffer-display-table display-table))))))
 ```
 
 For folding based on indentation levels, the **[outline-indent](https://github.com/jamescherti/outline-indent.el)** Emacs package provides a minor mode that enables folding according to the indentation structure:
 ```elisp
+;; The outline-indent Emacs package provides a minor mode that enables code
+;; folding based on indentation levels.
+;;
+;; In addition to code folding, *outline-indent* allows:
+;; - Moving indented blocks up and down
+;; - Indenting/unindenting to adjust indentation levels
+;; - Inserting a new line with the same indentation level as the current line
+;; - Move backward/forward to the indentation level of the current line
+;; - and other features.
 (use-package outline-indent
   :ensure t
-  :defer t
   :commands outline-indent-minor-mode
 
   :custom
-  (outline-indent-ellipsis " ▼ ")
+  (outline-indent-ellipsis " ▼")
 
   :init
   ;; The minor mode can also be automatically activated for a certain modes.
@@ -521,9 +586,7 @@ For folding based on indentation levels, the **[outline-indent](https://github.c
   (add-hook 'yaml-ts-mode-hook #'outline-indent-minor-mode))
 ```
 
-In addition to code folding, *outline-indent* also allows: moving indented blocks up and down, indenting/unindenting to adjust indentation levels, inserting a new line with the same indentation level as the current line, Move backward/forward to the indentation level of the current line, and more.
-
-![](https://raw.githubusercontent.com/jamescherti/outline-indent.el/main/.screenshot2.png)
+![](https://raw.githubusercontent.com/jamescherti/outline-indent.el/main/.images/screenshot2.png)
 
 ### Changing the default theme
 
@@ -577,9 +640,11 @@ The [stripspace](https://github.com/jamescherti/stripspace.el) Emacs package pro
 
 To enable **stripspace** and automatically delete trailing whitespace, add the following configuration to `~/.emacs.d/post-init.el`:
 ```elisp
+;; The stripspace Emacs package provides stripspace-local-mode, a minor mode
+;; that automatically removes trailing whitespace and blank lines at the end of
+;; the buffer when saving.
 (use-package stripspace
   :ensure t
-  :defer t
   :commands stripspace-local-mode
 
   ;; Enable for prog-mode-hook, text-mode-hook, conf-mode-hook
@@ -617,7 +682,7 @@ To install and configure these packages, add the following to `~/.emacs.d/post-i
 ;; The undo-fu package is a lightweight wrapper around Emacs' built-in undo
 ;; system, providing more convenient undo/redo functionality.
 (use-package undo-fu
-  :defer t
+  :ensure t
   :commands (undo-fu-only-undo
              undo-fu-only-redo
              undo-fu-only-redo-all
@@ -630,7 +695,7 @@ To install and configure these packages, add the following to `~/.emacs.d/post-i
 ;; The undo-fu-session package complements undo-fu by enabling the saving
 ;; and restoration of undo history across Emacs sessions, even after restarting.
 (use-package undo-fu-session
-  :defer t
+  :ensure t
   :commands undo-fu-session-global-mode
   :hook (after-init . undo-fu-session-global-mode))
 ```
@@ -640,34 +705,61 @@ To install and configure these packages, add the following to `~/.emacs.d/post-i
 Configuring Vim keybindings in Emacs can greatly enhance your editing efficiency if you are accustomed to Vim's modal editing style. Add the following to `~/.emacs.d/post-init.el` to set up [Evil mode](https://github.com/emacs-evil/evil):
 
 ``` emacs-lisp
-;; Required by evil-collection
-(eval-when-compile
-  ;; It has to be defined before evil
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil))
-
 ;; Uncomment the following if you are using undo-fu
 ;; (setq evil-undo-system 'undo-fu)
 
 ;; Vim emulation
 (use-package evil
   :ensure t
-  :defer t
   :commands (evil-mode evil-define-key)
-  :hook (after-init . evil-mode))
+  :hook (after-init . evil-mode)
 
-(eval-when-compile
-  ;; It has to be defined before evil-colllection
-  (setq evil-collection-setup-minibuffer t))
+  :init
+  ;; It has to be defined before evil
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+
+  :custom
+  ;; Make :s in visual mode operate only on the actual visual selection
+  ;; (character or block), instead of the full lines covered by the selection
+  (evil-ex-visual-char-range t)
+  ;; Use Vim-style regular expressions in search and substitute commands,
+  ;; allowing features like \v (very magic), \zs, and \ze for precise matches
+  (evil-ex-search-vim-style-regexp t)
+  ;; Enable automatic horizontal split below
+  (evil-split-window-below t)
+  ;; Enable automatic vertical split to the right
+  (evil-vsplit-window-right t)
+  ;; Disable echoing Evil state to avoid replacing eldoc
+  (evil-echo-state nil)
+  ;; Do not move cursor back when exiting insert state
+  (evil-move-cursor-back nil)
+  ;; Make `v$` exclude the final newline
+  (evil-v$-excludes-newline t)
+  ;; Allow C-h to delete in insert state
+  (evil-want-C-h-delete t)
+  ;; Enable C-u to delete back to indentation in insert state
+  (evil-want-C-u-delete t)
+  ;; Enable fine-grained undo behavior
+  (evil-want-fine-undo t)
+  ;; Allow moving cursor beyond end-of-line in visual block mode
+  (evil-move-beyond-eol t)
+  ;; Disable wrapping of search around buffer
+  (evil-search-wrap nil)
+  ;; Whether Y yanks to the end of the line
+  (evil-want-Y-yank-to-eol t))
 
 (use-package evil-collection
   :after evil
   :ensure t
+  :init
+  ;; It has to be defined before evil-colllection
+  (setq evil-collection-setup-minibuffer t)
   :config
   (evil-collection-init))
 ```
 
-You can also use the [vim-tab-bar](https://github.com/jamescherti/vim-tab-bar.el) Emacs package to `~/.emacs.d/post-init.el` to give the built-in Emacs tab-bar a style similar to Vim's tabbed browsing interface:
+You can also install the [vim-tab-bar](https://github.com/jamescherti/vim-tab-bar.el) package to enhance the built-in Emacs tab-bar with a minimalist, Vim-inspired design that automatically adapts to the active Emacs theme. Beyond its Vim-inspired design, the *vim-tab-bar* package is valued by users who prioritize theme consistency, as it integrates the Emacs tab-bar with any Emacs theme, producing a visually coherent and polished interface:
 ``` emacs-lisp
 ;; Give Emacs tab-bar a style similar to Vim's
 (use-package vim-tab-bar
@@ -676,12 +768,20 @@ You can also use the [vim-tab-bar](https://github.com/jamescherti/vim-tab-bar.el
   :hook (after-init . vim-tab-bar-mode))
 ```
 
+![](https://raw.githubusercontent.com/jamescherti/vim-tab-bar.el/main/.screenshots/emacs-tab-like-vim.png)
+
+*(The screenshot above showcases how vim-tab-bar modifies the built-in Emacs tab-bar.)*
+
 The `evil-surround` package simplifies handling surrounding characters, such as parentheses, brackets, quotes, etc. It provides key bindings to easily add, change, or delete these surrounding characters in pairs. For instance, you can surround the currently selected text with double quotes in visual state using `S"` or `gS"`:
 ``` emacs-lisp
+;; The evil-surround package simplifies handling surrounding characters, such as
+;; parentheses, brackets, quotes, etc. It provides key bindings to easily add,
+;; change, or delete these surrounding characters in pairs. For instance, you
+;; can surround the currently selected text with double quotes in visual state
+;; using S" or gS".
 (use-package evil-surround
   :after evil
   :ensure t
-  :defer t
   :commands global-evil-surround-mode
   :custom
   (evil-surround-pairs-alist
@@ -700,6 +800,8 @@ The `evil-surround` package simplifies handling surrounding characters, such as 
 
 You can also add the following code to enable commenting and uncommenting by pressing `gcc` in normal mode and `gc` in visual mode (thanks you to the Reddit user u/mistakenuser for this contribution, which replaces the evil-commentary package):
 ``` emacs-lisp
+;; The following code enables commenting and uncommenting by pressing gcc in
+;; normal mode and gc in visual mode.
 (with-eval-after-load "evil"
   (evil-define-operator my-evil-comment-or-uncomment (beg end)
     "Toggle comment for the region between BEG and END."
@@ -710,15 +812,12 @@ You can also add the following code to enable commenting and uncommenting by pre
 
 ### Configuring LSP Servers with Eglot (built-in)
 
-To set up Language Server Protocol (LSP) servers using Eglot, you can configure it in your Emacs setup as follows. This configuration ensures minimal disruption from Eglot's progress reporting and optimizes performance by disabling unnecessary logging.
-
-To configure `eglot`, add the following to `~/.emacs.d/post-init.el`:
+To set up Language Server Protocol (LSP) servers using Eglot, you can configure it, add the following to `~/.emacs.d/post-init.el`:
 ``` emacs-lisp
+;; Set up the Language Server Protocol (LSP) servers using Eglot.
 (use-package eglot
   :ensure nil
-  :defer t
-  :commands (eglot
-             eglot-ensure
+  :commands (eglot-ensure
              eglot-rename
              eglot-format-buffer))
 ```
@@ -726,6 +825,11 @@ To configure `eglot`, add the following to `~/.emacs.d/post-init.el`:
 Here is an example of how to configure Eglot to enable or disable certain options for the `pylsp` server in Python development. (Note that a third-party tool, [python-lsp-server](https://github.com/python-lsp/python-lsp-server), must be installed):
 
 ``` emacs-lisp
+;; Configure Eglot to enable or disable certain options for the pylsp server
+;; in Python development. (Note that a third-party tool,
+;; https://github.com/python-lsp/python-lsp-server, must be installed),
+(add-hook 'python-mode-hook #'eglot-ensure)
+(add-hook 'python-ts-mode-hook #'eglot-ensure)
 (setq-default eglot-workspace-configuration
               `(:pylsp (:plugins
                         (;; Fix imports and syntax using `eglot-format-buffer`
@@ -742,9 +846,6 @@ Here is an example of how to configure Eglot to enable or disable certain option
 
                          :yapf (:enabled :json-false)
                          :rope_autoimport (:enabled :json-false)))))
-
-(add-hook 'python-mode-hook #'eglot)
-(add-hook 'python-ts-mode-hook #'eglot)
 ```
 
 ### Session Management
@@ -753,9 +854,14 @@ The [easysession](https://github.com/jamescherti/easysession.el) Emacs package i
 
 To configure **easysession**, add the following to `~/.emacs.d/post-init.el`:
 ``` emacs-lisp
+;; The easysession Emacs package is a session manager for Emacs that can persist
+;; and restore file editing buffers, indirect buffers/clones, Dired buffers,
+;; windows/splits, the built-in tab-bar (including tabs, their buffers, and
+;; windows), and Emacs frames. It offers a convenient and effortless way to
+;; manage Emacs editing sessions and utilizes built-in Emacs functions to
+;; persist and restore frames.
 (use-package easysession
   :ensure t
-  :defer t
   :commands (easysession-switch-to
              easysession-save-as
              easysession-save-mode
@@ -782,11 +888,17 @@ To configure **easysession**, add the following to `~/.emacs.d/post-init.el`:
 
 ### Configuring org-mode
 
+Org mode is a major mode designed for organizing notes, planning, task management, and authoring documents using plain text with a simple and expressive markup syntax. It supports hierarchical outlines, TODO lists, scheduling, deadlines, time tracking, and exporting to multiple formats including HTML, LaTeX, PDF, and Markdown.
+
 To configure **org-mode**, add the following to `~/.emacs.d/post-init.el`:
 ```elisp
+;; Org mode is a major mode designed for organizing notes, planning, task
+;; management, and authoring documents using plain text with a simple and
+;; expressive markup syntax. It supports hierarchical outlines, TODO lists,
+;; scheduling, deadlines, time tracking, and exporting to multiple formats
+;; including HTML, LaTeX, PDF, and Markdown.
 (use-package org
   :ensure t
-  :defer t
   :commands (org-mode org-version)
   :mode
   ("\\.org\\'" . org-mode)
@@ -795,11 +907,189 @@ To configure **org-mode**, add the following to `~/.emacs.d/post-init.el`:
   (org-startup-indented t)
   (org-adapt-indentation nil)
   (org-edit-src-content-indentation 0)
-  (org-startup-truncated t)
-  (org-fontify-done-headline t)
-  (org-fontify-todo-headline t)
-  (org-fontify-whole-heading-line t)
-  (org-fontify-quote-and-verse-blocks t))
+  ;; (org-fontify-done-headline t)
+  ;; (org-fontify-todo-headline t)
+  ;; (org-fontify-whole-heading-line t)
+  ;; (org-fontify-quote-and-verse-blocks t)
+  (org-startup-truncated t))
+```
+
+### Configuring markdown-mode (e.g., README.md syntax)
+
+The [markdown-mode](https://github.com/jrblevin/markdown-mode) package provides a major mode for Emacs for syntax highlighting, editing commands, and preview support for Markdown documents. It supports core Markdown syntax as well as extensions like GitHub Flavored Markdown (GFM).
+
+To configure **markdown-mode**, add the following to `~/.emacs.d/post-init.el`:
+```elisp
+;; The markdown-mode package provides a major mode for Emacs for syntax
+;; highlighting, editing commands, and preview support for Markdown documents.
+;; It supports core Markdown syntax as well as extensions like GitHub Flavored
+;; Markdown (GFM).
+(use-package markdown-mode
+  :commands (gfm-mode
+             gfm-view-mode
+             markdown-mode
+             markdown-view-mode)
+  :mode (("\\.markdown\\'" . markdown-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("README\\.md\\'" . gfm-mode))
+  :init
+  (setq markdown-command "multimarkdown")
+
+  :bind
+  (:map markdown-mode-map
+        ("C-c C-e" . markdown-do)))
+```
+
+This configuration sets up `markdown-mode` with deferred loading to improve startup performance. The `:commands` and `:mode` keywords ensure that the mode is loaded only when needed—for example, when opening `.md`, `.markdown`, or `README.md` files. Files named `README.md` are specifically associated with `gfm-mode`, which is for GitHub Flavored Markdown syntax. The `markdown-command` variable is set to `"multimarkdown"` to specify the Markdown processor used for previews and exports. Additionally, a keybinding (`C-c C-e`) is defined in `markdown-mode-map` to invoke `markdown-do`, which can be customized to perform common Markdown-related actions.
+
+### Tree-sitter Integration (Better Syntax Highlighting)
+
+Tree-sitter is an incremental parsing system introduced in Emacs 29 that provides precise, high-performance syntax analysis and highlighting by constructing concrete syntax trees from source code. It supports a broad set of programming languages, including Bash, C, C++, C#, CMake, CSS, Dockerfile, Go, Java, JavaScript, JSON, Python, Rust, TOML, TypeScript, YAML, Elisp, Lua, Markdown, and many others. Unlike traditional font-lock, which relies on regular expressions, Tree-sitter uses formal grammar definitions to build real-time parse trees, enabling accurate syntax highlighting, structural navigation, code folding, and foundational support for advanced editing features like refactoring.
+
+The configuration below enables Tree-sitter support using the [treesit-auto](https://github.com/renzmann/treesit-auto) package. Setting `treesit-auto-add-to-auto-mode-alist` to `'all` ensures that all available Tree-sitter modes are automatically activated for their corresponding file types. Enabling `global-treesit-auto-mode` applies this behavior globally, improving syntax accuracy and consistency across supported languages.
+
+To enable Tree-sitter, add the following to your `~/.emacs.d/post-init.el`:
+
+```elisp
+;; Tree-sitter in Emacs is an incremental parsing system introduced in Emacs 29
+;; that provides precise, high-performance syntax highlighting. It supports a
+;; broad set of programming languages, including Bash, C, C++, C#, CMake, CSS,
+;; Dockerfile, Go, Java, JavaScript, JSON, Python, Rust, TOML, TypeScript, YAML,
+;; Elisp, Lua, Markdown, and many others.
+(use-package treesit-auto
+  :ensure t
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+```
+
+### Treemacs, a tree layout file explorer (Sidebar file explorer)
+
+The [treemacs](https://github.com/Alexander-Miller/treemacs) package is a file and project explorer for Emacs that provides a visually structured tree layout similar to file browsers in modern IDEs. It integrates well with various Emacs packages such as `projectile`, `lsp-mode`, and `magit`, allowing users to navigate their project structure efficiently.
+
+![](https://raw.githubusercontent.com/Alexander-Miller/treemacs/refs/heads/master/screenshots/screenshot.png)
+
+To configure **treemacs**, add the following to `~/.emacs.d/post-init.el`:
+```elisp
+;; A file and project explorer for Emacs that displays a structured tree
+;; layout, similar to file browsers in modern IDEs. It functions as a sidebar
+;; in the left window, providing a persistent view of files, projects, and
+;; other elements.
+(use-package treemacs
+  :ensure t
+  :commands (treemacs
+             treemacs-select-window
+             treemacs-delete-other-windows
+             treemacs-select-directory
+             treemacs-bookmark
+             treemacs-find-file
+             treemacs-find-tag)
+
+  :bind
+  (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-x t 1"   . treemacs-delete-other-windows)
+        ("C-x t t"   . treemacs)
+        ("C-x t d"   . treemacs-select-directory)
+        ("C-x t B"   . treemacs-bookmark)
+        ("C-x t C-t" . treemacs-find-file)
+        ("C-x t M-t" . treemacs-find-tag))
+
+  :init
+  (with-eval-after-load 'winum
+    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+
+  :config
+  (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+        treemacs-deferred-git-apply-delay        0.5
+        treemacs-directory-name-transformer      #'identity
+        treemacs-display-in-side-window          t
+        treemacs-eldoc-display                   'simple
+        treemacs-file-event-delay                2000
+        treemacs-file-extension-regex            treemacs-last-period-regex-value
+        treemacs-file-follow-delay               0.2
+        treemacs-file-name-transformer           #'identity
+        treemacs-follow-after-init               t
+        treemacs-expand-after-init               t
+        treemacs-find-workspace-method           'find-for-file-or-pick-first
+        treemacs-git-command-pipe                ""
+        treemacs-goto-tag-strategy               'refetch-index
+        treemacs-header-scroll-indicators        '(nil . "^^^^^^")
+        treemacs-hide-dot-git-directory          t
+        treemacs-indentation                     2
+        treemacs-indentation-string              " "
+        treemacs-is-never-other-window           nil
+        treemacs-max-git-entries                 5000
+        treemacs-missing-project-action          'ask
+        treemacs-move-files-by-mouse-dragging    t
+        treemacs-move-forward-on-expand          nil
+        treemacs-no-png-images                   nil
+        treemacs-no-delete-other-windows         t
+        treemacs-project-follow-cleanup          nil
+        treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+        treemacs-position                        'left
+        treemacs-read-string-input               'from-child-frame
+        treemacs-recenter-distance               0.1
+        treemacs-recenter-after-file-follow      nil
+        treemacs-recenter-after-tag-follow       nil
+        treemacs-recenter-after-project-jump     'always
+        treemacs-recenter-after-project-expand   'on-distance
+        treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+        treemacs-project-follow-into-home        nil
+        treemacs-show-cursor                     nil
+        treemacs-show-hidden-files               t
+        treemacs-silent-filewatch                nil
+        treemacs-silent-refresh                  nil
+        treemacs-sorting                         'alphabetic-asc
+        treemacs-select-when-already-in-treemacs 'move-back
+        treemacs-space-between-root-nodes        t
+        treemacs-tag-follow-cleanup              t
+        treemacs-tag-follow-delay                1.5
+        treemacs-text-scale                      nil
+        treemacs-user-mode-line-format           nil
+        treemacs-user-header-line-format         nil
+        treemacs-wide-toggle-width               70
+        treemacs-width                           35
+        treemacs-width-increment                 1
+        treemacs-width-is-initially-locked       t
+        treemacs-workspace-switch-cleanup        nil)
+
+  ;; The default width and height of the icons is 22 pixels. If you are
+  ;; using a Hi-DPI display, uncomment this to double the icon size.
+  ;; (treemacs-resize-icons 44)
+
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t)
+  (treemacs-fringe-indicator-mode 'always)
+
+  ;;(when treemacs-python-executable
+  ;;  (treemacs-git-commit-diff-mode t))
+
+  (pcase (cons (not (null (executable-find "git")))
+               (not (null treemacs-python-executable)))
+    (`(t . t)
+     (treemacs-git-mode 'deferred))
+    (`(t . _)
+     (treemacs-git-mode 'simple)))
+
+  (treemacs-hide-gitignored-files-mode nil))
+
+;; (use-package treemacs-evil
+;;   :after (treemacs evil)
+;;   :ensure t)
+;;
+;; (use-package treemacs-icons-dired
+;;   :hook (dired-mode . treemacs-icons-dired-enable-once)
+;;   :ensure t)
+;;
+;; (use-package treemacs-tab-bar  ; treemacs-tab-bar if you use tab-bar-mode
+;;   :after (treemacs)
+;;   :ensure t
+;;   :config (treemacs-set-scope-type 'Tabs))
+;;
+;; (treemacs-start-on-boot)
 ```
 
 ### Inhibit the mouse
@@ -812,6 +1102,11 @@ This package is useful for users who want to disable the mouse to:
 
 To configure **inhibit-mouse**, add the following to `~/.emacs.d/post-init.el`:
 ```emacs-lisp
+;; This package is useful for users who want to disable the mouse to:
+;; - Prevent accidental clicks or cursor movements that may unexpectedly change
+;;   the cursor position.
+;; - Reinforce a keyboard-centric workflow by discouraging reliance on the mouse
+;;   for navigation.
 (use-package inhibit-mouse
   :ensure t
   :config
@@ -830,7 +1125,6 @@ To configure **flyspell**, add the following to `~/.emacs.d/post-init.el`:
 ``` emacs-lisp
 (use-package ispell
   :ensure nil
-  :defer t
   :commands (ispell ispell-minor-mode)
   :custom
   ;; Set the ispell program name to aspell
@@ -842,9 +1136,11 @@ To configure **flyspell**, add the following to `~/.emacs.d/post-init.el`:
   ;; language code (e.g., "en_GB" for British English, "de_DE" for German).
   (ispell-extra-args '("--sug-mode=ultra" "--lang=en_US")))
 
+;; The flyspell package is a built-in Emacs minor mode that provides
+;; on-the-fly spell checking. It highlights misspelled words as you type,
+;; offering interactive corrections.
 (use-package flyspell
   :ensure nil
-  :defer t
   :commands flyspell-mode
   :hook
   ((prog-mode . flyspell-prog-mode)
@@ -874,9 +1170,10 @@ To maintain cursor stability, Apheleia generates an RCS patch, applies it select
 
 To configure **apheleia**, add the following to `~/.emacs.d/post-init.el`:
 ```elisp
+;; Apheleia is an Emacs package designed to run code formatters (e.g., Shfmt,
+;; Black and Prettier) asynchronously without disrupting the cursor position.
 (use-package apheleia
   :ensure t
-  :defer t
   :commands (apheleia-mode
              apheleia-global-mode)
   :hook ((prog-mode . apheleia-mode)))
@@ -888,8 +1185,10 @@ Helpful is an alternative to the built-in Emacs help that provides much more con
 
 To configure **helpful**, add the following to `~/.emacs.d/post-init.el`:
 ```emacs-lisp
+;; Helpful is an alternative to the built-in Emacs help that provides much more
+;; contextual information.
 (use-package helpful
-  :defer t
+  :ensure t
   :commands (helpful-callable
              helpful-variable
              helpful-key
@@ -913,7 +1212,6 @@ To enhance the Elisp development experience, add the following to `~/.emacs.d/po
 ;; Enables automatic indentation of code while typing
 (use-package aggressive-indent
   :ensure t
-  :defer t
   :commands aggressive-indent-mode
   :hook
   (emacs-lisp-mode . aggressive-indent-mode))
@@ -921,7 +1219,6 @@ To enhance the Elisp development experience, add the following to `~/.emacs.d/po
 ;; Highlights function and variable definitions in Emacs Lisp mode
 (use-package highlight-defined
   :ensure t
-  :defer t
   :commands highlight-defined-mode
   :hook
   (emacs-lisp-mode . highlight-defined-mode))
@@ -932,7 +1229,6 @@ Other optional packages that may be useful include:
 ;; Prevent parenthesis imbalance
 (use-package paredit
   :ensure t
-  :defer t
   :commands paredit-mode
   :hook
   (emacs-lisp-mode . paredit-mode)
@@ -943,7 +1239,6 @@ Other optional packages that may be useful include:
 ;; --------------------------------------------------------------------------
 ;; (use-package enhanced-evil-paredit
 ;;   :ensure t
-;;   :defer t
 ;;   :commands enhanced-evil-paredit-mode
 ;;   :hook
 ;;   (paredit-mode . enhanced-evil-paredit-mode))
@@ -951,7 +1246,6 @@ Other optional packages that may be useful include:
 ;; Displays visible indicators for page breaks
 (use-package page-break-lines
   :ensure t
-  :defer t
   :commands (page-break-lines-mode
              global-page-break-lines-mode)
   :hook
@@ -961,7 +1255,6 @@ Other optional packages that may be useful include:
 ;; special forms, and symbols in Emacs Lisp
 (use-package elisp-refs
   :ensure t
-  :defer t
   :commands (elisp-refs-function
              elisp-refs-macro
              elisp-refs-variable
@@ -973,6 +1266,8 @@ Other optional packages that may be useful include:
 
 Configure the `tab-bar-show` variable to 1 to display the tab bar exclusively when multiple tabs are open:
 ```elisp
+;; Configure the `tab-bar-show` variable to 1 to display the tab bar exclusively
+;; when multiple tabs are open:
 (setopt tab-bar-show 1)
 ```
 
@@ -980,6 +1275,7 @@ Configure the `tab-bar-show` variable to 1 to display the tab bar exclusively wh
 
 To prevent Emacs from saving customization information to a custom file, set `custom-file` to `null-device` by adding to the following to `~/.emacs.d/post-init.el`:
 ``` emacs-lisp
+;; Prevent Emacs from saving customization information to a custom file
 (setq custom-file null-device)
 ```
 
@@ -988,6 +1284,7 @@ To prevent Emacs from saving customization information to a custom file, set `cu
 To customize the default font, add the following expression to your `~/.emacs.d/post-init.el`:
 
 ```elisp
+;; Set the default font to DejaVu Sans Mono with specific size and weight
 (set-face-attribute 'default nil
                     :height 130 :weight 'normal :family "DejaVu Sans Mono")
 ```
@@ -1010,17 +1307,25 @@ fc-list : family | sed 's/,/\n/g' | sort -u
 ;; Allow Emacs to upgrade built-in packages, such as Org mode
 (setq package-install-upgrade-built-in t)
 
+;; When Delete Selection mode is enabled, typed text replaces the selection
+;; if the selection is active.
+(delete-selection-mode 1)
+
 ;; Display the current line and column numbers in the mode line
 (setq line-number-mode t)
 (setq column-number-mode t)
 (setq mode-line-position-column-line-format '("%l:%C"))
 
 ;; Display of line numbers in the buffer:
-;; (display-line-numbers-mode 1)
+(setq-default display-line-numbers-type 'relative)
+(dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
+  (add-hook hook #'display-line-numbers-mode))
+
+;; Set the maximum level of syntax highlighting for Tree-sitter modes
+(setq treesit-font-lock-level 4)
 
 (use-package which-key
   :ensure nil ; builtin
-  :defer t
   :commands which-key-mode
   :hook (after-init . which-key-mode)
   :custom
@@ -1058,8 +1363,7 @@ fc-list : family | sed 's/,/\n/g' | sort -u
   :custom
   (uniquify-buffer-name-style 'reverse)
   (uniquify-separator "•")
-  (uniquify-after-kill-buffer-p t)
-  (uniquify-ignore-buffers-re "^\\*"))
+  (uniquify-after-kill-buffer-p t))
 
 ;; Window dividers separate windows visually. Window dividers are bars that can
 ;; be dragged with the mouse, thus allowing you to easily resize adjacent
@@ -1085,6 +1389,9 @@ fc-list : family | sed 's/,/\n/g' | sort -u
                                "\\|^flymake_.*"))
 (add-hook 'dired-mode-hook #'dired-omit-mode)
 
+;; Enables visual indication of minibuffer recursion depth after initialization.
+(add-hook 'after-init-hook #'minibuffer-depth-indicate-mode)
+
 ;; Configure Emacs to ask for confirmation before exiting
 (setq confirm-kill-emacs 'y-or-n-p)
 
@@ -1093,11 +1400,6 @@ fc-list : family | sed 's/,/\n/g' | sort -u
 (setq vc-make-backup-files t)
 (setq kept-old-versions 10)
 (setq kept-new-versions 10)
-
-;; Improve Emacs responsiveness by deferring fontification during input
-;;
-;; NOTE: This may cause delayed syntax highlighting in certain cases
-(setq redisplay-skip-fontification-on-input t)
 ```
 
 It is also recommended to read the following articles:
@@ -1124,7 +1426,9 @@ An alternative lightweight approach is to simply change the default `~/.emacs.d`
 
 **IMPORTANT:** The code above should be added to `~/.emacs.d/pre-early-init.el`, not the other files, as it modifies the behavior of all subsequent init files.
 
-### Configuring straight.el?
+### Configuring straight.el
+
+The `straight.el` package is a declarative package manager for Emacs that aims to replace traditional systems like `package.el` by providing more precise control over package installation and management. Unlike `package.el`, which relies on downloading pre-built packages from ELPA archives, `straight.el` clones packages directly from their source repositories (typically Git), enabling reproducible and fully source-controlled package configurations.
 
 [Add the straight.el bootstrap code](https://github.com/radian-software/straight.el?tab=readme-ov-file#getting-started) to `~/.emacs.d/pre-init.el`:
 ``` emacs-lisp
@@ -1147,6 +1451,8 @@ An alternative lightweight approach is to simply change the default `~/.emacs.d`
 ```
 
 ### Configuring elpaca (package manager)
+
+Elpaca is a modern, asynchronous package manager for Emacs designed to be a drop-in replacement for `package.el` and `straight.el`, with enhanced performance and flexibility. Unlike traditional Emacs package managers, Elpaca installs packages asynchronously, allowing Emacs to remain responsive during installation and updates.
 
 Add to `~/.emacs.d/pre-early-init.el`:
 ```elisp
@@ -1272,10 +1578,10 @@ If you prefer MELPA Stable over MELPA, you can add MELPA Stable and prioritize i
 ;; This change increases MELPA Stable priority to 70, above MELPA,
 ;; ensuring that MELPA is preferred for package installations
 ;; over MELPA Stable.
-(customize-set-variable 'package-archive-priorities '(("gnu"    . 99)
-                                                      ("nongnu" . 80)
-                                                      ("melpa-stable" . 70)
-                                                      ("melpa"  . 0)))
+(setq package-archive-priorities '(("gnu"    . 99)
+                                   ("nongnu" . 80)
+                                   ("melpa-stable" . 70)
+                                   ("melpa"  . 0)))
 ```
 
 ### How to load a local lisp file for machine-specific configurations?
@@ -1305,10 +1611,6 @@ Add the following to `~/.emacs.d/pre-early-init.el` to ensure that *minimal-emac
 ```emacs-lisp
 (setq minimal-emacs-gc-cons-threshold (* 64 1024 1024))
 ```
-
-### How to change the outline-mode or outline-minor-mode Ellipsis (...) to (▼)?
-
-If you want to to change the outline-mode or outline-minor-mode Ellipsis (...) to (▼), use the code snippet in this article: [Changing the Ellipsis (“…”) in outline-mode and outline-minor-mode](https://www.jamescherti.com/emacs-customize-ellipsis-outline-minor-mode/).
 
 ### How to prevent Emacs from loading .dir-locals.el files?
 
