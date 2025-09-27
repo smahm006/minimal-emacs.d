@@ -3,17 +3,27 @@
 ;; Remote file editing through ssh/scp.
 (use-package tramp
   :ensure nil
-  :custom
-  (tramp-verbose 0)
-  (tramp-chunksize 2000)
-  (tramp-histfile-override nil)
-  (tramp-default-method "ssh")
   :config
-  ;; Allows more dirvish features over tamp
-  ;; Remove if casuing emacs to hang
-  (add-to-list 'tramp-connection-properties
-               (list (regexp-quote "/ssh:")
-                     "direct-async-process" t)))
+  ;; Speed up tramp https://coredumped.dev/2025/06/18/making-tramp-go-brrrr./
+  ;; Use scp to copy files
+  (setq remote-file-name-inhibit-locks t
+        tramp-use-scp-direct-remote-copying t
+        remote-file-name-inhibit-auto-save-visited t)
+  ;; Increase copy size limit
+  (setq tramp-copy-size-limit (* 1024 1024) ;; 1MB
+        tramp-verbose 2)
+  ;; Use direct async
+  (connection-local-set-profile-variables
+   'remote-direct-async-process
+   '((tramp-direct-async-process . t)))
+  (connection-local-set-profiles
+   '(:application tramp :protocol "scp")
+   'remote-direct-async-process)
+  (setq magit-tramp-pipe-stty-settings 'pty)
+  ;;  Fix remote compile
+  (with-eval-after-load 'tramp
+    (with-eval-after-load 'compile
+      (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options))))
 
 ;; Eat is the best terminal emulator which three modes to switch from
 (use-package eat
