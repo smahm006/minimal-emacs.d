@@ -27,6 +27,7 @@
     "Compile current buffer file with sh."
     (interactive)
     (compile (format "shellcheck %s" buffer-file-name)))
+  :config
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  '(bash-ts-mode . ("bash-language-server" "start")))))
