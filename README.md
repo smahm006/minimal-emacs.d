@@ -106,7 +106,7 @@ In addition to *minimal-emacs.d*, startup speed is influenced by your computer's
         - [How to get the latest version of all packages? (unstable)](#how-to-get-the-latest-version-of-all-packages-unstable)
         - [How to use MELPA stable?](#how-to-use-melpa-stable)
         - [How to load a local lisp file for machine-specific configurations?](#how-to-load-a-local-lisp-file-for-machine-specific-configurations)
-        - [How to prevent Emacs from repeatedly recompiling some Elisp files?](#how-to-prevent-emacs-from-repeatedly-recompiling-some-elisp-files)
+        - [How to prevent Emacs from repeatedly performing native compilation on specific Elisp files](#how-to-prevent-emacs-from-repeatedly-performing-native-compilation-on-specific-elisp-files)
         - [How to load Emacs customizations?](#how-to-load-emacs-customizations)
         - [How to increase gc-cons-threshold?](#how-to-increase-gc-cons-threshold)
         - [How to prevent Emacs from loading .dir-locals.el files?](#how-to-prevent-emacs-from-loading-dir-localsel-files)
@@ -134,7 +134,7 @@ In addition to *minimal-emacs.d*, startup speed is influenced by your computer's
 
 Execute the following command install this repository into `~/.emacs.d`:
 ```
-git clone https://github.com/jamescherti/minimal-emacs.d ~/.emacs.d
+git clone --depth 1 https://github.com/jamescherti/minimal-emacs.d ~/.emacs.d
 ```
 
 ### Alternative: Install minimal-emacs.d into `~/.minimal-emacs.d`
@@ -143,7 +143,7 @@ To install *minimal-emacs.d* in a non-default directory, use the `--init-directo
 
 1. Clone the repository into `~/.minimal-emacs.d/` using:
    ```
-   git clone https://github.com/jamescherti/minimal-emacs.d ~/.minimal-emacs.d
+   git clone --depth 1 https://github.com/jamescherti/minimal-emacs.d ~/.minimal-emacs.d
    ```
 
 2. Start Emacs with the new configuration directory:
@@ -1062,7 +1062,7 @@ To enable Tree-sitter, add the following to your `~/.emacs.d/post-init.el`:
 
 ### Auto upgrade Emacs packages
 
-The `auto-package-update` package that automates the process of updating installed packages managed by *package.el*. Instead of requiring users to manually invoke `package-list-packages` and update each package, `auto-package-update` can check for available updates at regular intervals, perform updates in the background, and optionally hide the results buffer or prompt before applying changes.
+The [auto-package-update](https://github.com/rranelli/auto-package-update.el) automates the process of updating installed packages managed by *package.el*. Instead of requiring users to manually invoke `package-list-packages` and update each package, `auto-package-update` can check for available updates at regular intervals, perform updates in the background, and optionally hide the results buffer or prompt before applying changes.
 
 To configure **auto-package-update**, add the following to `~/.emacs.d/post-init.el`:
 
@@ -1811,29 +1811,29 @@ And [add the Elpaca bootstrap code](https://github.com/progfolio/elpaca?tab=read
 
 ### Customizing Scroll Recentering
 
-By default, minimal-emacs.d sets `scroll-conservatively` to `101`:
+By default, minimal-emacs.d sets `scroll-conservatively` to `20`:
 
 ```emacs-lisp
-(setq scroll-conservatively 101)  ; Default minimal-emacs.d value
+(setq scroll-conservatively 20)  ; Default minimal-emacs.d value
 ```
 
-A value of `101` minimizes screen movement and maintains point visibility with minimal adjustment, which many users find optimal for rapid navigation.
+This makes Emacs recenters the window when the cursor moves past `scroll-conservatively` lines beyond the window edge.
 
-You can override this in your `post-init.el` file. Setting it to `0` forces Emacs to recenter the point aggressively, typically positioning it in the middle of the window:
+You can override this in your `post-init.el` file. Setting it to `0` forces Emacs to recenter the point aggressively, typically positioning it in the middle of the window (NOT RECOMMENDED):
 
 ```emacs-lisp
-(setq scroll-conservatively 0)  ; NOT RECOMMENDED. SET IT TO 101 INSTEAD.
+(setq scroll-conservatively 0)  ; NOT RECOMMENDED
 ```
 
 Although this offers more surrounding context, it results in frequent and pronounced screen movement, which can disrupt navigation. A value of `0` is generally discouraged unless this behavior is explicitly desired.
 
-Most users prefer `101`. Some select `10` as a compromise:
+A value of `101` minimizes screen movement and maintains point visibility with minimal adjustment:
 
 ```emacs-lisp
-(setq scroll-conservatively 10)  ; Note: You might prefer 101 over 10.
+(setq scroll-conservatively 101)
 ```
 
-A value of `10` permits occasional recentering for additional context but introduces more movement than `101`.
+The main drawback of `101` is that Emacs will avoid recentering almost entirely, only adjusting the window just enough to keep point visible at the very top or very bottom of the screen. Point can stick to the top or bottom edge of the window, giving you very little context above or below, which can make editing harder if you want surrounding lines visible.
 
 ### How to display Emacs startup duration?
 
@@ -2004,7 +2004,7 @@ This allows `local.el` to load, enabling custom configurations specific to the m
 
 (Ensure that `local.el` is in the same directory as `post-init.el`.)
 
-### How to prevent Emacs from repeatedly recompiling some Elisp files?
+### How to prevent Emacs from repeatedly performing native compilation on specific Elisp files
 
 In certain Emacs configurations, specific files may be recompiled repeatedly during startup.
 ```elisp
