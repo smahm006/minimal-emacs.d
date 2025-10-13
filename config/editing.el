@@ -19,21 +19,32 @@
 ;; Better editing functions
 ;; From https://github.com/bbatsov/crux and my own research
 (defun me/backward-kill-thing ()
-  "Delete sexp, symbol, word or whitespace backward depending on the context at point."
+  "Delete pair, word, whitespace or char backward depending on the context at point."
   (interactive)
-  (let ((bounds (seq-some #'bounds-of-thing-at-point '(sexp symbol word))))
-    (cond
-     ;; If there are bounds and point is within them, kill the region
-     ((and bounds (< (car bounds) (point)))
-      (kill-region (car bounds) (point)))
-     ;; If there's whitespace before point, delete it
-     ((thing-at-point-looking-at "\\([ \n]+\\)")
-      (if (< (match-beginning 1) (point))
-          (kill-region (match-beginning 1) (point))
-        (kill-backward-chars 1)))
-     ;; If none of the above, delete one character backward
-     (t
-      (kill-backward-chars 1)))))
+  (cond
+   ;; If point is right after a closing delimiter, kill the whole pair
+   ;; BUT only if there's non-whitespace content before it on the same line
+   ((and (not (bobp))
+         (memq (char-syntax (char-before)) '(?\) ?\] ?\} ?\> ?\" ?\' ?\`))
+         (not (looking-back "^[[:blank:]]*" (line-beginning-position))))
+    (let ((end (point))
+          (start (save-excursion
+                   (backward-sexp)
+                   (point))))
+      (message "Deleted paired delimiters")
+      (kill-region start end)))
+   ;; If there's a word before point, delete it
+   ((looking-back (rx (char word)) 1)
+    (message "Deleted word")
+    (backward-kill-word 1))
+   ;; If there's whitespace before point, delete it
+   ((looking-back (rx (char blank)) 1)
+    (message "Deleted whitespace")
+    (delete-horizontal-space t))
+   ;; Otherwise, delete the character before point
+   (t
+    (backward-delete-char 1)
+    (message "Deleted character"))))
 
 (defun me/kill-region-or-line ()
   "Kill the region if active, otherwise kill the current line.
@@ -48,8 +59,8 @@
       (kill-region (line-beginning-position) (line-beginning-position 2)))))
 
 (defun me/smart-kill-line-backwards ()
-  "Insert an empty line above the current line.
-      Position the cursor at it's beginning, according to the current mode."
+  "Kill the text from the point to the beginning of the line
+   taking into account the indentation"
   (interactive)
   (kill-line 0)
   (indent-according-to-mode))
@@ -136,7 +147,10 @@
               ("p" . mc/mark-previous-like-this)
               :exit
               ("a" . mc/mark-all-like-this)
-              ("m" . mc/edit-lines)))
+              ("m" . mc/edit-lines))
+         (:map mc/keymap
+              ("<return>" . newline)))
+
 
 ;; Smarter commenting + decommenting
 (use-package smart-comment
