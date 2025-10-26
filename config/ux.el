@@ -126,7 +126,10 @@
               (eq x (current-buffer))
               (member (buffer-name x) protected-buffers)))
            (buffer-list)))
-    (delete-other-windows)))
+    (delete-other-windows))
+  :config
+  (setq switch-to-buffer-obey-display-actions t)
+  (setq switch-to-buffer-in-dedicated-window 'pop))
 
 (use-package uniquify
   :ensure nil
@@ -170,39 +173,3 @@
           (consult-ripgrep "ripgrep" "r")
           (magit-project-status "Magit" "m")))
   (setq project-vc-extra-root-markers '(".project")))
-
-;; File Management
-(use-package dired
-  :ensure nil
-  :commands (dired dired-jump)
-  :hook (dired-mode . dired-omit-mode)
-  :bind
-  (:map dired-mode-map
-        ("<tab>" . dired-find-file)
-        ("M-n" . dired-find-file)
-        ("<backtab>" . dired-up-directory)
-        ("M-p" . dired-up-directory)
-        ( "."     . dired-omit-mode)
-        ("C-+" . dired-create-empty-file)
-        ("Q" . (lambda ()
-                 (interactive)
-                 (mapc (lambda (buffer)
-                         (when (or (eq 'dired-mode (buffer-local-value 'major-mode buffer))
-                                   (string-match-p "^\\*image-dired" (buffer-name buffer)))
-                           (kill-buffer buffer)))
-                       (buffer-list)))))
-  (:map me/file-map
-        ("d" . (lambda ()
-                 (interactive)
-                 (dired-jump)
-                 (revert-buffer)))
-        ("D" . dired)
-        ("f" . find-file-at-point))
-  :custom
-  (dired-omit-files (rx (seq bol ".")))
-  (dired-listing-switches "-goah --group-directories-first --time-style=long-iso -v")
-  (dired-kill-when-opening-new-dired-buffer nil)
-  (dired-dwim-target t)
-  (dired-recursive-copies 'always)
-  (dired-create-destination-dirs 'ask)
-  (dired-clean-confirm-killing-deleted-buffers nil))

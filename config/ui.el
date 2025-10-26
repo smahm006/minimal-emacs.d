@@ -40,6 +40,11 @@
           (file :fn nerd-icons-icon-for-file :face font-lock-string-face)
           (t :style "cod" :icon "code" :face font-lock-warning-face))))
 
+(use-package nerd-icons-dired
+  :ensure t
+  :after nerd-icons dired
+  :commands (nerd-icons-dired-mode)
+  :hook (dired-mode . nerd-icons-dired-mode))
 
 ;; Modeline settings
 (use-package doom-modeline
