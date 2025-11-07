@@ -25,6 +25,8 @@
          ([remap project-list-buffers] . consult-project-buffer)
          ([remap yank-pop] . consult-yank-pop)
          ([remap goto-line] . consult-goto-line)
+         ("M-s" . consult-line)
+         ("M-r" . consult-ripgrep)
          :map minibuffer-local-map
          ("M-s" . consult-history)
          ("M-r" . consult-history)
@@ -100,7 +102,7 @@
              embark-bindings
              embark-prefix-help-command)
   :bind
-  (("C-." . embark-act)
+  (("C-," . embark-act)
    ("C-;" . embark-dwim)
    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
   :init
