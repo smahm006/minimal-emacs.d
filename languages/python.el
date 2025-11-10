@@ -12,6 +12,7 @@
                       (define-key me/run-map (kbd "r") #'me/python-run)
                       (define-key me/run-map (kbd "c") #'me/python-check)
                       (define-key me/run-map (kbd "f") #'me/python-format)
+                      (define-key me/run-map (kbd "w") #'me/python-fix)
                       (local-set-key [remap backward-sexp] #'python-nav-backward-sexp-safe)
                       (local-set-key [remap forward-sexp] #'python-nav-forward-sexp-safe)))
   :preface
@@ -66,7 +67,7 @@
   :config
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
-                 '(python-ts-mode . ("basedpyright-langserver" "--stdio")))))
+                 '(python-ts-mode . ("ty" "server")))))
 
 
 (use-package sphinx-doc

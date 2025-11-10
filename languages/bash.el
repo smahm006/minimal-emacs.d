@@ -2,12 +2,12 @@
 
 (use-package bash
   :ensure nil
-  :mode (("\\.sh\\'"  . bash-ts-mode))
-  :interpreter ("bash" . bash-ts-mode)
+  :mode (("\\.sh\\'"  . sh-mode))
+  :interpreter ("bash" . sh-mode)
   :hook
-  (bash-ts-mode . eglot-ensure)
+  (sh-mode . eglot-ensure)
   :hook
-  (bash-ts-mode . (lambda ()
+  (sh-mode . (lambda ()
                     (define-key me/run-map (kbd "r") #'me/bash-run)
                     (define-key me/run-map (kbd "c") #'me/bash-check)
                     (define-key me/run-map (kbd "f") #'me/bash-format)))
@@ -30,4 +30,4 @@
   :config
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
-                 '(bash-ts-mode . ("bash-language-server" "start")))))
+                 '(sh-mode . ("bash-language-server" "start")))))

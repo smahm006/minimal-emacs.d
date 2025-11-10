@@ -7,12 +7,14 @@
   :hook
   (yaml-ts-mode . (lambda ()
                     (define-key me/run-map (kbd "c") #'me/yaml-check)
-                    (define-key me/run-map (kbd "f") #'me/yaml-format)))
+                    (define-key me/run-map (kbd "f") #'me/yaml-format)
+                    (local-set-key [remap beginning-of-defun] #'yaml-pro-ts-prev-subtree)
+                    (local-set-key [remap end-of-defun] #'yaml-pro-ts-next-subtree)))
   :preface
   (defun me/yaml-format ()
     "Format buffer using yamlfmt"
     (interactive)
-    (let ((output (shell-command-to-string (format "yamlfmt -quiet %s" (shell-quote-argument buffer-file-name)))))
+    (let ((output (shell-command-to-string (format "yamlfmt -w %s" (shell-quote-argument buffer-file-name)))))
       (message "%s" (string-trim output)))
     (me/revert-buffer-no-confirm))
   (defun me/yaml-check ()
