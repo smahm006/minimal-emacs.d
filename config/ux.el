@@ -76,7 +76,7 @@
   :ensure nil
   :bind
   ((:map ctl-x-map
-         ("B" . me/switch-to-previous-buffer))
+         ("B" . me/temporary-buffer))
    (:map me/buffer-map
          ("r" . me/rename-file-and-buffer)
          ("d" . me/delete-file-and-buffer)
@@ -89,9 +89,10 @@
     (dolist (buffer protected-buffers)
       (with-current-buffer buffer
         (emacs-lock-mode 'kill))))
-  (defun me/switch-to-previous-buffer ()
+  (defun me/temporary-buffer()
+    "Make a temporary buffer and switch to it - Like C-n for Sublime etc"
     (interactive)
-    (switch-to-buffer (other-buffer (current-buffer) 1)))
+    (switch-to-buffer (get-buffer-create (concat "tmp-" (format-time-string "%m.%dT%H.%M.%S")))))
   (defun me/rename-file-and-buffer ()
     "Rename the current buffer and file it is visiting."
     (interactive)
@@ -118,7 +119,9 @@
   (defun me/kill-other-buffers ()
     "Kill other buffers except current one and protected buffers."
     (interactive)
-    (eglot-shutdown-all)
+    (when (and (featurep 'eglot)
+               (fboundp 'eglot-shutdown-all))
+      (eglot-shutdown-all))
     (mapc 'kill-buffer
           (cl-remove-if
            (lambda (x)

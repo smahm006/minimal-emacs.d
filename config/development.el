@@ -72,5 +72,18 @@
   :ensure nil
   :after project
   :custom
-  ;; Let git gutter have left fringe, flymake can have right fringe
-  (flymake-fringe-indicator-position 'right-fringe))
+  (flymake-show-diagnostics-at-end-of-line 'fancy)
+  (flymake-fringe-indicator-position 'left-fringe)
+  (flymake-suppress-zero-counters t)
+  (flymake-start-on-flymake-mode t)
+  (flymake-no-changes-timeout nil)
+  (flymake-start-on-save-buffer t)
+  ;; (flymake-no-changes-timeout 0.1)
+  (flymake-proc-compilation-prevents-syntax-check t)
+  (flymake-wrap-around nil)
+  (flymake-mode-line-format
+   '("" flymake-mode-line-exception flymake-mode-line-counters))
+  (flymake-mode-line-counter-format
+   '(" " flymake-mode-line-error-counter
+     flymake-mode-line-warning-counter
+     flymake-mode-line-note-counter "")))

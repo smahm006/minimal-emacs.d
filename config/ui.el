@@ -7,8 +7,16 @@
 (setq blink-cursor-mode t)                                ; Blink cursor
 
 ;; Theme settings
-(minimal-emacs-load-user-init "themes/tomorrow-night-paradise-theme.el")
-(load-theme 'tomorrow-night-paradise t)
+;; (minimal-emacs-load-user-init "themes/tomorrow-night-paradise-theme.el")
+;; (load-theme 'tomorrow-night-paradise t)
+(use-package doric-themes
+  :demand t
+  :config
+  (doric-themes-select 'doric-dark)
+  :bind
+  (("<f5>" . doric-themes-toggle)
+   ("C-<f5>" . doric-themes-select)
+   ("M-<f5>" . doric-themes-rotate)))
 
 ;; Font settings
 (set-face-attribute 'default nil :font "MapleMonoNormal 14")

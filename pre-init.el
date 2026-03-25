@@ -10,9 +10,6 @@
 ;; Keybind settings
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
-(global-set-key (kbd "<f5>")
-  (lambda () (interactive)
-    (minimal-emacs-load-user-init "init.el")))
 
 ;; Useful Functions
 (defun me/revert-buffer-no-confirm ()

@@ -28,8 +28,3 @@
          (end (line-end-position))
          (middle (/ (+ end begin) 2)))
     (goto-char middle)))
-
-
-;; Bind custom functions
-(global-set-key (kbd "C-z") #'me/move-to-middle)
-(global-set-key (kbd "M-z") #'move-to-window-line-top-bottom)
