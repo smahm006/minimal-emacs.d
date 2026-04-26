@@ -29,6 +29,8 @@
 (use-package eat
   :bind
   ("C-x t" . eat)
+  :hook
+  (eat-mode . (lambda () (setq-local global-hl-line-mode nil)))
   :config
   (define-key eat-semi-char-mode-map (kbd "M-o") nil)  ;; M-o is used to switch windows
   (define-key eat-semi-char-mode-map (kbd "M-u") nil)) ;; M-u is used to fullscreen buffer

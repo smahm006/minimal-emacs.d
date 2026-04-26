@@ -1,75 +1,9 @@
-;;; ux.el --- User Experience customization  -*- no-byte-compile: t; lexical-binding: t; -*-
+;;; ux.el --- User Experience (Buffer, File, Project) customization  -*- no-byte-compile: t; lexical-binding: t; -*-
 
 ;; Enable Smooth Scrolling
 (setq pixel-scroll-precision-interpolate-mice nil)        ; Disable interpolation (causes wired jumps)
 (setq pixel-scroll-precision-mode (display-graphic-p))    ; Enable pixel-wise scrolling
 (setq pixel-scroll-precision-use-momentum t)              ; Enable momentum for scrolling lagre buffers
-
-;; Window Management
-(use-package ace-window
-  :autoload ace-display-buffer
-  :init
-  (winner-mode)
-  :bind
-  (("M-o" . ace-window)
-   ("M-O" . me/ace-window-prefix)
-   ("M-u" . me/toggle-fullscreen-window)
-   ([remap split-window-right] . me/hsplit-last-window)
-   ([remap split-window-below] . me/vsplit-last-window)
-   (:map me/window-map
-         ("b" . balance-windows)
-         ("c" . recenter-top-bottom)
-         ("i" . enlarge-window)
-         ("j" . shrink-window-horizontally)
-         ("k" . shrink-window)
-         ("u" . winner-undo)
-         ("r" . winner-redo)
-         ("l" . enlarge-window-horizontally)
-         ("s" . switch-window-then-swap-buffer)
-         ("-" . text-scale-decrease)
-         ("+" . text-scale-increase)
-         ("=" . (lambda () (interactive) (text-scale-increase 0)))))
-  :preface
-  (defun me/hsplit-last-window ()
-    "Focus to the last created horizontal window."
-    (interactive)
-    (split-window-horizontally)
-    (other-window 1))
-  (defun me/vsplit-last-window ()
-    "Focus to the last created vertical window."
-    (interactive)
-    (split-window-vertically)
-    (other-window 1))
-  (defun me/toggle-fullscreen-window ()
-    "Toggle a buffer as fullscreen"
-    (interactive)
-    (if (= 1 (length (window-list)))
-        (jump-to-register '_)
-      (progn
-        (window-configuration-to-register '_)
-        (delete-other-windows))))
-  (defun me/ace-window-prefix ()
-    "https://karthinks.com/software/emacs-window-management-almanac/#a-window-prefix-command-for-ace-window"
-    (interactive)
-    (display-buffer-override-next-command
-     (lambda (buffer _)
-       (let (window type)
-         (setq
-          window (aw-select (propertize " ACE" 'face 'mode-line-highlight))
-          type 'reuse)
-         (cons window type)))
-     nil "[ace-window]")
-    (message "Use `ace-window' to display next command buffer..."))
-  :custom
-  ;; Switch to minibuffer as well
-  (aw-minibuffer-flag t)
-  ;; Make Emacs ask where to place a new buffer
-  (display-buffer-base-action
-   '((display-buffer-reuse-window
-      display-buffer-in-previous-window
-      ace-display-buffer)))
-  :custom-face
-  (aw-leading-char-face ((t (:foreground "red" :weight bold :height 2.0)))))
 
 ;; Buffer Management
 (use-package ibuffer

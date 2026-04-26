@@ -9,14 +9,9 @@
 ;; Theme settings
 ;; (minimal-emacs-load-user-init "themes/tomorrow-night-paradise-theme.el")
 ;; (load-theme 'tomorrow-night-paradise t)
-(use-package doric-themes
-  :demand t
+(use-package tron-legacy-theme
   :config
-  (doric-themes-select 'doric-dark)
-  :bind
-  (("<f5>" . doric-themes-toggle)
-   ("C-<f5>" . doric-themes-select)
-   ("M-<f5>" . doric-themes-rotate)))
+  (load-theme 'tron-legacy t))
 
 ;; Font settings
 (set-face-attribute 'default nil :font "MapleMonoNormal 14")
@@ -74,7 +69,6 @@
 (add-hook 'conf-mode-hook #'display-line-numbers-mode)
 (add-hook 'text-mode-hook #'display-line-numbers-mode)
 (add-hook 'org-mode-hook (lambda () (display-line-numbers-mode -1)))
-(add-hook 'eat-mode-hook (lambda () (display-line-numbers-mode -1)))
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 ;; Highlight current line in prog mode
@@ -99,3 +93,46 @@
   (indent-bars-width-frac 0.2)
   :hook
   (prog-mode . indent-bars-mode))
+
+;; Flash cursor
+(use-package beacon
+  :config
+  (beacon-mode 1)
+  :custom
+  (beacon-color "#2f8ca3")
+  (beacon-size 60)
+  (beacon-blink-duration 0.3)
+  (beacon-blink-when-window-scrolls t)
+  (beacon-blink-when-window-changes t)
+  (beacon-blink-when-point-moves-vertically 10))
+
+;; Dim inactive buffer
+(use-package dimmer
+  :init
+  (defun advise-dimmer-config-change-handler ()
+    "Advise to only force process if no predicate is truthy."
+    (let ((ignore (cl-some (lambda (f) (and (fboundp f) (funcall f)))
+                           dimmer-prevent-dimming-predicates)))
+      (unless ignore
+        (when (fboundp 'dimmer-process-all)
+          (dimmer-process-all t)))))
+
+  (defun corfu-frame-p ()
+    "Check if the buffer is a corfu frame buffer."
+    (string-match-p "\\` \\*corfu" (buffer-name)))
+
+  (defun dimmer-configure-corfu ()
+    "Convenience settings for corfu users."
+    (add-to-list
+     'dimmer-prevent-dimming-predicates
+     #'corfu-frame-p))
+  :config
+  (advice-add
+   'dimmer-config-change-handler
+   :override 'advise-dimmer-config-change-handler)
+  (dimmer-configure-corfu)
+  (dimmer-mode t)
+  :custom
+  (dimmer-fraction 0.2)
+  (dimmer-configure-which-key)
+  (dimmer-configure-magit))

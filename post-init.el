@@ -3,6 +3,9 @@
 ;; Configure Emacs to ask for confirmation before exiting
 (setq confirm-kill-emacs 'y-or-n-p)
 
+;; Save the existing clipboard content into the kill ring before overwriting it
+(setq save-interprogram-paste-before-kill t)
+
 ;; Allow :make or :shell when using :vc with use-package
 (setq package-vc-allow-build-commands t)
 

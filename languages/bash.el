@@ -6,6 +6,7 @@
   :interpreter ("bash" . sh-mode)
   :hook
   (sh-mode . eglot-ensure)
+  (sh-mode . executable-make-buffer-file-executable-if-script-p)
   :hook
   (sh-mode . (lambda ()
                     (define-key me/run-map (kbd "r") #'me/bash-run)

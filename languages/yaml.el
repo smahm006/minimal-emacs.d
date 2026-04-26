@@ -14,7 +14,7 @@
   (defun me/yaml-format ()
     "Format buffer using yamlfmt"
     (interactive)
-    (let ((output (shell-command-to-string (format "yamlfmt -w %s" (shell-quote-argument buffer-file-name)))))
+    (let ((output (shell-command-to-string (format "yamlfmt %s" (shell-quote-argument buffer-file-name)))))
       (message "%s" (string-trim output)))
     (me/revert-buffer-no-confirm))
   (defun me/yaml-check ()

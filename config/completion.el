@@ -75,7 +75,9 @@
    consult--source-recent-file consult--source-project-recent-file
    ;; :preview-key "M-."
    :preview-key '(:debounce 0.4 any))
-  (setq consult-narrow-key "<"))
+  (setq consult-narrow-key "<")
+  (setq consult-ripgrep-args
+      "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --no-heading --with-filename --line-number --search-zip --hidden --glob=!.git"))
 
 (use-package vertico
   :commands vertico-mode
@@ -102,7 +104,7 @@
              embark-bindings
              embark-prefix-help-command)
   :bind
-  (("C-," . embark-act)
+  (("C-." . embark-act)
    ("C-;" . embark-dwim)
    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
   :init

@@ -45,9 +45,18 @@
           (me/pyrightconfig-write venv-dir)))
       (message (concat "Created " venv-dir))))
   (defun me/python-run ()
-    "Compile current buffer file with python."
+    "Run current buffer with python, activating .venv if present."
     (interactive)
-    (compile (format "python3 %s" (shell-quote-argument buffer-file-name))))
+    (let* ((root (or (locate-dominating-file buffer-file-name ".venv")
+                     default-directory))
+           (venv-activate (expand-file-name ".venv/bin/activate" root))
+           (cmd (if (file-exists-p venv-activate)
+                    (format "bash -c 'source %s && python3 %s'"
+                            (shell-quote-argument venv-activate)
+                            (shell-quote-argument buffer-file-name))
+                  (format "python3 %s"
+                          (shell-quote-argument buffer-file-name)))))
+      (compile cmd)))
   (defun me/python-format ()
     "Format buffer using ruff"
     (interactive)

@@ -16,6 +16,9 @@
 ;; The kill ring is rotated after selecting previously killed text.
 (setq yank-from-kill-ring-rotate t)
 
+;; Make Emacs use normal regex patterns
+(setq reb-re-syntax 'string)
+
 ;; Better editing functions
 ;; From https://github.com/bbatsov/crux and my own research
 (defun me/backward-kill-thing ()
