@@ -4,7 +4,7 @@
 ;; URL: https://github.com/jamescherti/minimal-emacs.d
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: maint
-;; Version: 1.4.1
+;; Version: 1.4.2
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;;; Commentary:
@@ -62,9 +62,7 @@
 ;;; package.el
 
 (when (and (bound-and-true-p minimal-emacs-package-initialize-and-refresh)
-           (not (bound-and-true-p byte-compile-current-file))
-           (not (or (fboundp 'straight-use-package)
-                    (fboundp 'elpaca))))
+           (not (bound-and-true-p byte-compile-current-file)))
   ;; Initialize and refresh package contents again if needed
   (package-initialize)
   (unless package-archive-contents
@@ -171,7 +169,9 @@
 ;; Ignoring this is acceptable since it will redirect to the buffer regardless.
 (setq find-file-suppress-same-file-warnings t)
 
-;; Resolve symlinks to avoid duplicate buffers
+;; Automatically resolve symlinks to their true paths. This sets the correct
+;; working directory so C-x C-f opens in the right folder and version control
+;; tools recognize the Git repository.
 (setq find-file-visit-truename t
       ;; Automatically follow a symlink to its source if that source is managed
       ;; by a version control system, rather than asking for permission.
@@ -434,7 +434,13 @@
 ;; files, wdired, unreadable dirs, and delegates to dired-directory-changed-p
 ;; for modification checks.
 (setq auto-revert-remote-files nil)
-(setq dired-auto-revert-buffer 'dired-buffer-stale-p)
+
+;; Auto refresh Dired buffers, but only if the directory's modification time has
+;; changed on disk. Using `dired-directory-changed-p' is efficient: it avoids
+;; the unconditional re-renders of `t', and skips the heavy overhead of
+;; `dired-buffer-stale-p' (which makes blocking I/O calls for every inserted
+;; subdirectory, causing UI freezes on remote/network drives).
+(setq dired-auto-revert-buffer 'dired-directory-changed-p)
 
 ;; dired-omit-mode
 (setq dired-omit-verbose nil

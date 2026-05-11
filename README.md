@@ -52,6 +52,7 @@ Startup speed depends on hardware and disk speed. For consistent comparisons, te
 
 ## User Testimonials
 
+- [DapperStatement3364](https://www.reddit.com/r/emacs/comments/1rsmaut/comment/ocv82id/): "Thank you!!! It helped me a lot. I was having some problems with my config (latency/input lag), was considering to going back to Neovim and your config solved my problems. Great documentation btw, everything is very clear and easy to follow."
 - [gnudoc on Reddit](https://www.reddit.com/r/emacs/comments/1feaf37/comment/lmn1hoo/): "That's a great learning resource. Thank you for your work on it and for sharing it!"
 - [dewyke on Reddit](https://www.reddit.com/r/emacs/comments/1feaf37/comment/lmq53an/): "Lots of good stuff in there, even for people who already have established ways of organising their configs."
 - [JamesBrickley (Shout out to this starter-kit: Minimal-Emacs )](https://www.reddit.com/r/emacs/comments/1epz7qn/shout_out_to_this_starterkit_minimalemacs/) appreciates that *minimal-emacs.d* provides an optimized *early-init.el* and *init.el* for fast startup times and sensible default settings. He highlights that the project includes all the essential configurations needed for a well-tuned Emacs setup, eliminating the need to sift through conflicting advice on topics like garbage collection optimization. While he has encountered similar settings before, he also discovered new optimizations he had not seen elsewhere.
@@ -71,6 +72,9 @@ Startup speed depends on hardware and disk speed. For consistent comparisons, te
 - [sunng on Reddit](https://www.reddit.com/r/emacs/comments/1p9y8h4/comment/ns1nehi/): "Nice work! I just created a nix flake to using it on my dev servers"
 - [zackattackz287 on Reddit](https://www.reddit.com/r/emacs/comments/1rsmaut/comment/oa8okca/): "Congrats and thank you (and the community around minimal.d) for your work! I've been using it for quite a while now and I've not ever had any breakages when merging changes from main..."
 - [utility on Reddit](https://www.reddit.com/r/emacs/comments/1rsmaut/comment/oa8wrap/): "Excellent. I use this and I'm very happy with it!"
+- [Karrot_Kream](https://news.ycombinator.com/item?id=45784591): "If you don't want to use a distribution like Doom (which I don't fwiw and I've been using emacs for 20-something years), then **I'm a big fan of minimal-emacs a compact init.el and early-init.el that configures vanilla emacs into a good, default state**. From there I would pick and choose which packages..."
+- [uutangohotel](https://news.ycombinator.com/item?id=45783901): "https://github.com/jamescherti/minimal-emacs.d is a great starting point for owning your config."
+- [kleinishere](): "Came here to find this. MANY upvotes. I used Doom for a couple months. Then started considering a vanilla eMacs. I started taking notes on packages I found highly recommended and interesting. Then I found this [minimal-emacs.d]. And the author has done all that work and then made it into a "let me walk through a config" including a lot of the most recommended packages and sensible configs. Gives you the lesson of building a config, knowing what's in your config, and then being fluent in changing it. He also has more notes on his blog about the packages + more : https://www.jamescherti.com/essential-emacs-packages/ And I now feel comfortable making changes myself."
 
 Please share your configuration. It could serve as inspiration for other users.
 
@@ -132,9 +136,11 @@ Please share your configuration. It could serve as inspiration for other users.
     - [Changing the Default Font](#changing-the-default-font)
     - [Persisting and Restoring Text Scale](#persisting-and-restoring-text-scale)
     - [A Faster Terminal Emulator](#a-faster-terminal-emulator)
+    - [Emacs server](#emacs-server)
     - [Loading the custom.el file](#loading-the-customel-file)
     - [Which other customizations can be interesting to add?](#which-other-customizations-can-be-interesting-to-add)
     - [File types (Yaml, Dockerfile, Lua, Jinja2, CSV, Vimrc...)](#file-types-yaml-dockerfile-lua-jinja2-csv-vimrc)
+    - [Auto save buffers](#auto-save-buffers)
   - [Customizations: Before init (File: pre-init.el)](#customizations-before-init-file-pre-initel)
     - [Configuring straight.el](#configuring-straightel)
     - [Configuring Elpaca (package manager)](#configuring-elpaca-package-manager)
@@ -799,7 +805,7 @@ Configuring Vim keybindings in Emacs can greatly enhance your editing efficiency
 (use-package evil-collection
   :after evil
   :init
-  ;; It has to be defined before evil-colllection
+  ;; It has to be defined before evil-collection
   (setq evil-collection-setup-minibuffer t)
   :config
   (evil-collection-init))
@@ -996,7 +1002,7 @@ To configure **kirigami**, add the following to `~/.emacs.d/post-init.el`:
    ("C-c z r" . kirigami-open-folds)         ; Open all folds
    ("C-c z c" . kirigami-close-fold)         ; Close fold at point
    ("C-c z m" . kirigami-close-folds)        ; Close all folds
-   ("C-c z <tab>" . kirigami-toggle-fold)))  ; Toggle fold at point
+   ("C-c z a" . kirigami-toggle-fold)))      ; Toggle fold at point
 
 ;; Uncomment the following if you are an `evil-mode' user:
 ;; (with-eval-after-load 'evil
@@ -1021,7 +1027,7 @@ One of the modes that provide code folding is `outline-minor-mode` provides stru
 
 Alternatively, `hs-minor-mode` offers basic code folding for blocks defined by curly braces, functions, or other language-specific delimiters. However, for more flexible folding that supports multiple nested levels, `outline-minor-mode` is generally the preferred choice, as it enables finer control over section visibility in deeply structured code.
 
-For example, to enable `outline-minor-mode` in Emacs Lisp:
+For example, to enable `outline-minor-mode`:
 
 ``` emacs-lisp
 ;; The built-in outline-minor-mode provides structured code folding in modes
@@ -1032,8 +1038,7 @@ For example, to enable `outline-minor-mode` in Emacs Lisp:
   :ensure nil
   :commands outline-minor-mode
   :hook
-  ((emacs-lisp-mode . outline-minor-mode)
-   ;; Use " ▼" instead of the default ellipsis "..." for folded text to make
+  (;; Use " ▼" instead of the default ellipsis "..." for folded text to make
    ;; folds more visually distinctive and readable.
    (outline-minor-mode
     .
@@ -1043,6 +1048,36 @@ For example, to enable `outline-minor-mode` in Emacs Lisp:
              (value (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▼"))))
         (set-display-table-slot display-table 'selective-display value)
         (setq buffer-display-table display-table))))))
+
+;; Enable the mode
+(add-hook 'emacs-lisp-mode-hook #'outline-minor-mode)
+(add-hook 'lisp-mode-hook #'outline-minor-mode)
+(add-hook 'conf-mode-hook #'outline-minor-mode)
+(add-hook 'markdown-mode-hook #'outline-minor-mode)
+(add-hook 'diff-mode-hook #'outline-minor-mode)
+```
+
+To enable `hs-minor-mode`, which is ideal for C-style languages and others that use braces `{}`:
+```elisp
+;; Systems and General Purpose
+(add-hook 'c-mode-hook #'hs-minor-mode)
+(add-hook 'c++-mode-hook #'hs-minor-mode)
+(add-hook 'java-mode-hook #'hs-minor-mode)
+(add-hook 'rust-mode-hook #'hs-minor-mode)
+(add-hook 'go-mode-hook #'hs-minor-mode)
+(add-hook 'ruby-mode-hook #'hs-minor-mode)
+
+;; Web and Frontend
+(add-hook 'js-mode-hook #'hs-minor-mode)
+(add-hook 'typescript-mode-hook #'hs-minor-mode)
+(add-hook 'css-mode-hook #'hs-minor-mode)
+
+;; Scripting, Data, and Infrastructure
+(add-hook 'sh-mode-hook #'hs-minor-mode) ; for bash/shell scripts
+(add-hook 'json-mode-hook #'hs-minor-mode)
+(add-hook 'lua-mode-hook #'hs-minor-mode)
+(add-hook 'nxml-mode-hook #'hs-minor-mode)
+(add-hook 'html-mode-hook #'hs-minor-mode)  ;; mhtml and html
 ```
 
 #### outline-indent-minor-mode: Folding based on indentation levels
@@ -1051,8 +1086,7 @@ For folding based on indentation levels, the **[outline-indent](https://github.c
 ```elisp
 ;; The outline-indent Emacs package provides a minor mode that enables code
 ;; folding based on indentation levels.
-;;
-;; In addition to code folding, *outline-indent* allows:
+;; In addition to code folding, outline-indent allows:
 ;; - Moving indented blocks up and down
 ;; - Indenting/unindenting to adjust indentation levels
 ;; - Inserting a new line with the same indentation level as the current line
@@ -1060,26 +1094,28 @@ For folding based on indentation levels, the **[outline-indent](https://github.c
 ;; - and other features.
 (use-package outline-indent
   :commands outline-indent-minor-mode
-
   :custom
-  (outline-indent-ellipsis " ▼")
+  (outline-indent-ellipsis " ▼"))
 
-  :init
-  ;; The minor mode can also be automatically activated for a certain modes.
-  (add-hook 'python-mode-hook #'outline-indent-minor-mode)
-  (add-hook 'python-ts-mode-hook #'outline-indent-minor-mode)
+;; Python
+(add-hook 'python-mode-hook #'outline-indent-minor-mode)
+(add-hook 'python-ts-mode-hook #'outline-indent-minor-mode)
 
-  (add-hook 'yaml-mode-hook #'outline-indent-minor-mode)
-  (add-hook 'yaml-ts-mode-hook #'outline-indent-minor-mode))
+;; Yaml
+(add-hook 'yaml-mode-hook #'outline-indent-minor-mode)
+(add-hook 'yaml-ts-mode-hook #'outline-indent-minor-mode)
+
+;; Haskell
+(add-hook 'haskell-mode-hook #'outline-indent-minor-mode)
 ```
 
 ![](https://raw.githubusercontent.com/jamescherti/outline-indent.el/main/.images/screenshot2.png)
 
 #### treesit-fold
 
-It is also recommended to install [treesit-fold](https://github.com/emacs-tree-sitter/treesit-fold), which provides intelligent code folding by leveraging the structural understanding of the built-in tree-sitter parser. Unlike traditional folding methods that rely on regular expressions or indentation, treesit-fold uses the actual syntax tree of the code to accurately identify foldable regions such as functions, classes, comments, and documentation strings. This allows for faster and more precise folding behavior that respects the grammar of the programming language, ensuring that fold boundaries are always syntactically correct even in complex or nested code structures.
+It is also recommended to install [treesit-fold](https://github.com/emacs-tree-sitter/treesit-fold), which provides intelligent code folding by using the structural understanding of the built-in tree-sitter parser. Unlike traditional folding methods that rely on regular expressions or indentation, treesit-fold uses the actual syntax tree of the code to accurately identify foldable regions such as functions, classes, comments, and documentation strings. This allows for faster and more precise folding behavior that respects the grammar of the programming language, ensuring that fold boundaries are always syntactically correct even in complex or nested code structures.
 ```elisp
-;; Intelligent code folding by leveraging the structural understanding of the
+;; Intelligent code folding by using the structural understanding of the
 ;; built-in tree-sitter parser. Unlike traditional folding methods that rely on
 ;; regular expressions or indentation, treesit-fold uses the actual syntax tree
 ;; of the code to accurately identify foldable regions such as functions,
@@ -1107,11 +1143,36 @@ It is also recommended to install [treesit-fold](https://github.com/emacs-tree-s
                       :foreground "#808080"
                       :box nil
                       :weight 'bold))
-```
 
-The `treesit-fold` mode can be enabled using `treesit-fold-mode` or a hook such as:
-```elisp
-(add-hook 'python-ts-mode-hook #'treesit-fold-mode)
+;; Systems and General Purpose
+(add-hook 'c-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'c++-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'java-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'rust-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'go-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'ruby-ts-mode-hook #'treesit-fold-mode)
+
+;; Web and Frontend
+(add-hook 'js-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'typescript-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'tsx-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'css-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'html-ts-mode-hook #'treesit-fold-mode)
+
+;; Scripting and Infrastructure
+(add-hook 'bash-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'cmake-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'dockerfile-ts-mode-hook #'treesit-fold-mode)
+
+;; Data and Configuration
+(add-hook 'json-ts-mode-hook #'treesit-fold-mode)
+(add-hook 'toml-ts-mode-hook #'treesit-fold-mode)
+
+;; Third-party
+;; (add-hook 'kotlin-ts-mode-hook #'treesit-fold-mode)
+;; (add-hook 'swift-ts-mode-hook #'treesit-fold-mode)
+;; (add-hook 'elixir-ts-mode-hook #'treesit-fold-mode)
+;; (add-hook 'zig-ts-mode-hook #'treesit-fold-mode)
 ```
 
 ### Asynchronous code formatting without cursor disruption
@@ -1234,6 +1295,8 @@ To configure **flyspell**, add the following to `~/.emacs.d/post-init.el`:
   :ensure nil
   :commands (ispell ispell-minor-mode)
   :custom
+  (ispell-quietly t)
+
   ;; Set the ispell program name to aspell
   (ispell-program-name "aspell")
 
@@ -1422,7 +1485,7 @@ To configure **auto-package-update**, add the following to `~/.emacs.d/post-init
 
   ;; Automatically delete old package versions after updates to reduce disk
   ;; usage and keep the package directory clean. This prevents the accumulation
-  ;; of outdated files in Emacs’s package directory, which consume
+  ;; of outdated files in Emacs's package directory, which consume
   ;; unnecessary disk space over time.
   (auto-package-update-delete-old-versions t)
 
@@ -1873,6 +1936,40 @@ To configure the *vterm* package, add the following to your `~/.emacs.d/post-ini
 
 The `vterm` terminal emulator can be started with `M-x vterm`.
 
+### Emacs server
+
+The Emacs server allows external programs such as `emacsclient` to connect to a single running instance of Emacs. This makes it possible to open files in the existing session rather than starting a new Emacs process each time.
+
+To start the Emacs server after initialization, add the following form to your `~/.emacs.d/post-init.el`:
+
+```elisp
+;; The Emacs server allows external programs such as `emacsclient' to connect to
+;; a single running instance of Emacs. This makes it possible to open files in
+;; the existing session rather than starting a new Emacs process each time.
+;;
+;; Once the server is running, the `emacsclient' command can be used in the
+;; terminal to open files in the active Emacs session. For example, running the
+;; following command opens the file in the existing Emacs frame without blocking
+;; the terminal process.
+;;   emacsclient -n filename.txt
+;;
+(use-package server
+  :ensure nil
+  :if (not (daemonp))
+  :commands (server-running-p
+             server-start)
+  :hook (after-init . my-server-start)
+  :preface
+  (defun my-server-start ()
+    "Start the Emacs server if no server process is currently active."
+    (unless (server-running-p)
+      (server-start))))
+```
+
+This configuration safely checks that Emacs is not running as a daemon and ensures that no existing server process is active, preventing conflicts.
+
+Once the server is running, the `emacsclient` command can be used in the terminal to open files in the active Emacs session. For example, running `emacsclient -n filename.txt` opens the file in the existing Emacs frame without blocking the terminal process.
+
 ### Loading the custom.el file
 
 **NOTE:** The author advises against loading `custom.el`. Users are instead encouraged to define their configuration programmatically in files such as `post-init.el`. Maintaining configuration programmatically offers several advantages: it ensures reproducibility and facilitates version control. This makes it easier to understand, audit, and evolve the configuration over time.
@@ -2032,15 +2129,6 @@ In Emacs, customization variables modified via the UI (e.g., `M-x customize`) ar
 (setq tooltip-delay 0.4)        ; Delay before showing a tooltip after mouse hover (default: 0.7)
 (setq tooltip-short-delay 0.08) ; Delay before showing a short tooltip (Default: 0.1)
 (tooltip-mode 1)
-
-;; Configure the built-in Emacs server to start after initialization,
-;; allowing the use of the emacsclient command to open files in the
-;; current session.
-(use-package server
-  :ensure nil
-  :commands server-start
-  :hook
-  (after-init . server-start))
 ```
 
 It is also recommended to read the following articles:
@@ -2198,6 +2286,45 @@ These modes are optional and can be added selectively to `~/.emacs.d/post-init.e
 ;;   :mode ("\\.hs\\'" . haskell-mode))
 ```
 
+### Auto save buffers
+
+The [buffer-guardian](https://github.com/jamescherti/buffer-guardian.el) Emacs package provides `buffer-guardian-mode`, a global mode that automatically saves buffers without requiring manual intervention.
+
+By default, `buffer-guardian-mode` saves file-visiting buffers when:
+- Switching to another buffer.
+- Switching to another window or frame.
+- The window configuration changes (e.g., window splits).
+- The minibuffer is opened.
+- Emacs loses focus.
+
+In addition to regular file-visiting buffers, `buffer-guardian-mode` also handles specialized editing buffers used for inline code blocks, such as `org-src` (for Org mode) and `edit-indirect` (commonly used for Markdown source code blocks). These temporary buffers are linked to an underlying parent buffer. Automatically saving them ensures that modifications made within these isolated code environments are correctly propagated back to the original Org or Markdown file.
+
+To configure the *buffer-guardian* package, add the following to your `~/.emacs.d/post-init.el`:
+```elisp
+(use-package buffer-guardian
+  :custom
+  ;; When non-nil, include remote files in the auto-save process
+  (buffer-guardian-inhibit-saving-remote-files t)
+
+  ;; When non-nil, buffers visiting nonexistent files are not saved
+  (buffer-guardian-inhibit-saving-nonexistent-files nil)
+
+  ;; Save the buffer even if the window change results in the same buffer
+  (buffer-guardian-save-on-same-buffer-window-change t)
+
+  ;; Non-nil to enable verbose mode to log when a buffer is automatically saved
+  (buffer-guardian-verbose nil)
+
+  ;; Save all buffers after N seconds of user idle time. (Disabled by default)
+  ;; (buffer-guardian-save-all-buffers-idle 30)
+
+  ;; Save all buffers every N seconds. (Disabled by default)
+  ;; (setq buffer-guardian-save-all-buffers-interval (* 60 30))
+
+  :hook
+  (after-init . buffer-guardian-mode))
+```
+
 ## Customizations: Before init (File: pre-init.el)
 
 NOTE: Using `straight.el` or Elpaca is **optional**. Emacs already has a built-in package manager.
@@ -2226,6 +2353,11 @@ The `straight.el` package is a declarative package manager for Emacs that aims t
   (load bootstrap-file nil 'nomessage))
 
 (setq straight-use-package-by-default t)
+
+;; Limit Git clone depth to a single commit when using straight.el. This
+;; performs shallow clones, reducing download size the cost of full
+;; repository history.
+;; (setq straight-vc-git-default-clone-depth 1)
 ```
 
 ### Configuring Elpaca (package manager)
@@ -2395,7 +2527,7 @@ Disabling both `site-run-file` and `default.el` removes system-level interferenc
 
 By default, *minimal-emacs.d* is configured to prioritize packages from [GNU ELPA](https://elpa.gnu.org/) and [NonGNU ELPA](https://elpa.nongnu.org/) repositories over [MELPA](https://melpa.org/), ensuring greater stability.
 
-If you prefer to obtain the latest packages from MELPA to access new features and improvements, you can adjust the priority so that Emacs `use-package` retrieves the newest versions from MELPA before consulting the stable GNU and NonGNU repositories. While MELPA packages are generally regarded as less stable, actual breakages are uncommon; over the past year, only a single package (package-lint) out of 146 packages in the author’s configuration experienced a brief disruption, which was quickly resolved.
+If you prefer to obtain the latest packages from MELPA to access new features and improvements, you can adjust the priority so that Emacs `use-package` retrieves the newest versions from MELPA before consulting the stable GNU and NonGNU repositories. While MELPA packages are generally regarded as less stable, actual breakages are uncommon; over the past year, only a single package (package-lint) out of 146 packages in the author's configuration experienced a brief disruption, which was quickly resolved.
 
 Benefit:
 
@@ -2413,7 +2545,7 @@ To ensure that Emacs always installs or updates to the newest versions of all pa
 ;; Obtain the latest packages from MELPA to access new features and
 ;; improvements. While MELPA packages are generally regarded as less stable,
 ;; actual breakages are uncommon; over the past year, only a single package
-;; (package-lint) out of 146 packages in the minimal-emacs.d author’s
+;; (package-lint) out of 146 packages in the minimal-emacs.d author's
 ;; configuration experienced a brief disruption, which was quickly resolved.
 (setq package-archive-priorities '(("melpa"        . 90)
                                    ("gnu"          . 70)
@@ -2514,7 +2646,7 @@ Here is a comprehensive `package-pinned-packages` configuration to guarantee tha
 By default, *minimal-emacs.d* uses [MELPA](https://melpa.org/) instead of [MELPA Stable](https://stable.melpa.org/) because MELPA Stable offers outdated packages that lack essential features. If you prefer to use MELPA Stable, you may follow the instructions below.
 
 Here are the key differences between **MELPA** (the default repository used in minimal-emacs.d) and **MELPA Stable**:
-- **MELPA** (preferred) is a rolling release repository for Emacs packages, where packages are continuously updated with the latest commits from their respective development branches, delivering the most current features and bug fixes. While MELPA features the latest changes, most Emacs package developers have learned to maintain a relatively stable master branch, which contributes to MELPA’s overall stability. Furthermore, MELPA includes a broader selection of packages.
+- **MELPA** (preferred) is a rolling release repository for Emacs packages, where packages are continuously updated with the latest commits from their respective development branches, delivering the most current features and bug fixes. While MELPA features the latest changes, most Emacs package developers have learned to maintain a relatively stable master branch, which contributes to MELPA's overall stability. Furthermore, MELPA includes a broader selection of packages.
 - In contrast, **MELPA Stable** is a repository that hosts versioned, tagged releases of packages. However, **MELPA Stable does not guarantee more reliability than MELPA, as its tagged versions may still suffer from issues** like uncoordinated dependencies or incomplete testing, and updates are less frequent, often based on developer discretion rather than every new commit.
 
 If you prefer MELPA Stable over MELPA, you can add MELPA Stable and prioritize it. To ensure packages are fetched from MELPA Stable first, add the following configuration to `~/.emacs.d/post-early-init.el`:
@@ -2708,6 +2840,8 @@ To install and load packages during the early-init phase, add the following to `
 
 - [zendo: Emacs literate configuration](https://github.com/zendo/nsworld/blob/main/dotfiles/org/all-emacs.org)
 
+- [ZforCandY minimal-emacs.d configuration](https://codeberg.org/ZforCandY/priv-conf/src/branch/main/minimal-emacs.d)
+
 ## Features
 
 The minimal-emacs.d base provides a sensible foundation for your personal configuration. It addresses common pain points in vanilla Emacs to provide a responsive and clean environment from the start, without forcing a specific workflow.
@@ -2802,3 +2936,4 @@ Other Emacs packages by the same author:
 - [persist-text-scale.el](https://github.com/jamescherti/persist-text-scale.el): Ensure that all adjustments made with text-scale-increase and text-scale-decrease are persisted and restored across sessions.
 - [pathaction.el](https://github.com/jamescherti/pathaction.el): Execute the pathaction command-line tool from Emacs. The pathaction command-line tool enables the execution of specific commands on targeted files or directories. Its key advantage lies in its flexibility, allowing users to handle various types of files simply by passing the file or directory as an argument to the pathaction tool. The tool uses a .pathaction.yaml rule-set file to determine which command to execute. Additionally, Jinja2 templating can be employed in the rule-set file to further customize the commands.
 - [kirigami.el](https://github.com/jamescherti/kirigami.el): The *kirigami* Emacs package offers a unified interface for opening and closing folds across a diverse set of major and minor modes in Emacs, including `outline-mode`, `outline-minor-mode`, `outline-indent-minor-mode`, `org-mode`, `markdown-mode`, `vdiff-mode`, `vdiff-3way-mode`, `hs-minor-mode`, `hide-ifdef-mode`, `origami-mode`, `yafolding-mode`, `folding-mode`, and `treesit-fold-mode`. With Kirigami, folding key bindings only need to be configured **once**. After that, the same keys work consistently across all supported major and minor modes, providing a unified and predictable folding experience.
+- [buffer-guardian.el](https://github.com/jamescherti/buffer-guardian.el): Automatically saves Emacs buffers without requiring manual intervention. By default, it triggers a save when the user switches to another buffer, switches to another window or frame, Emacs loses focus, or the minibuffer is opened. Beyond standard file buffers, *buffer-guardian* also manages specialized editing buffers such as *org-src* and *edit-indirect*. Additional features, disabled by default, include periodic or idle-time saving of all buffers, automatic exclusion of remote, nonexistent, or large files, and support for custom exclusion rules via regular expressions or predicate functions.
