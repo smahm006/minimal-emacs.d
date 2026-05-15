@@ -80,33 +80,5 @@
     (me/mkdir org-agenda-directory)
     (org-agenda-files org-agenda-directory)))
 
-
-;; Simple notes with an efficient file-naming scheme
-(use-package denote
-  :hook (dired-mode . denote-dired-mode)
-  :bind
-  (:map me/note-map
-        (("n" . denote)
-         ("r" . denote-rename-file)
-         ("l" . denote-link)
-         ("b" . denote-backlinks)
-         ("d" . denote-sort-dired)))
-  :config
-  (let ((org-notes-directory (format "%s/notes/" org-directory)))
-    (me/mkdir org-notes-directory)
-    (setq denote-directory org-notes-directory))
-  (denote-rename-buffer-mode 1))
-
-(use-package consult-denote
-  :after denote consult
-  :bind
-  (:map me/note-map
-        ("f" . consult-denote-find)
-        ("g" . consult-denote-grep))
-  :custom
-  (consult-denote-grep-command 'consult-ripgrep)
-  :config
-  (consult-denote-mode 1))
-
 (use-package writeroom-mode
   :bind (("<f3>" . writeroom-mode)))

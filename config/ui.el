@@ -9,12 +9,15 @@
 ;; Theme settings
 ;; (minimal-emacs-load-user-init "themes/tomorrow-night-paradise-theme.el")
 ;; (load-theme 'tomorrow-night-paradise t)
-(use-package tron-legacy-theme
+(use-package almost-mono-themes
   :config
-  (load-theme 'tron-legacy t))
+  ;; Mutate the alist after the package feature has officially provided the symbol
+  (setf (cdr (assoc 'highlight (cdr (assoc 'black almost-mono-themes-colors)))) "#00ff00")
+  (load-theme 'almost-mono-black t))
+
 
 ;; Font settings
-(set-face-attribute 'default nil :font "MapleMonoNormal 14")
+(set-face-attribute 'default nil :font "SauceCodeProNerdFont 14")
 (set-fontset-font t 'latin "Noto Sans")
 
 ;; Icon settings
@@ -99,7 +102,7 @@
   :config
   (beacon-mode 1)
   :custom
-  (beacon-color "#2f8ca3")
+  (beacon-color "#00ff00")
   (beacon-size 60)
   (beacon-blink-duration 0.3)
   (beacon-blink-when-window-scrolls t)
@@ -133,6 +136,6 @@
   (dimmer-configure-corfu)
   (dimmer-mode t)
   :custom
-  (dimmer-fraction 0.2)
+  (dimmer-fraction 0.5)
   (dimmer-configure-which-key)
   (dimmer-configure-magit))

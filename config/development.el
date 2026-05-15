@@ -33,7 +33,6 @@
   (completion-category-defaults nil)
   (eglot-autoshutdown t)
   (eglot-send-changes-idle-time 3)
-  (flymake-no-changes-timeout 5)
   :config
   ;; Continuously update the candidates using cape cache buster
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
@@ -78,7 +77,7 @@
   (flymake-start-on-flymake-mode t)
   (flymake-no-changes-timeout nil)
   (flymake-start-on-save-buffer t)
-  ;; (flymake-no-changes-timeout 0.1)
+  (flymake-no-changes-timeout 0.1)
   (flymake-proc-compilation-prevents-syntax-check t)
   (flymake-wrap-around nil)
   (flymake-mode-line-format
