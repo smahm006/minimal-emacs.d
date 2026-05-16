@@ -1,120 +1,96 @@
-;;; java.el --- Java customization  -*- no-byte-compile: t; lexical-binding: t; -*-
+;;; java.el --- Java language configuration -*- no-byte-compile: t; lexical-binding: t; -*-
 
 (use-package java-ts-mode
   :ensure nil
-  :mode (("\\.java\\'" . java-ts-mode))
+  :mode ("\\.java\\'" . java-ts-mode)
   :hook
   (java-ts-mode . eglot-ensure)
-  :hook
   (java-ts-mode . (lambda ()
                     (define-key me/run-map (kbd "r") #'me/java-run)
                     (define-key me/run-map (kbd "t") #'me/java-test)
-                    (define-key me/run-map (kbd "c") #'me/java-check)
-                    (define-key me/run-map (kbd "f") #'me/java-format)
                     (define-key me/run-map (kbd "b") #'me/java-build)
-                    (define-key me/run-map (kbd "C") #'me/java-clean)))
+                    (define-key me/run-map (kbd "C") #'me/java-clean)
+                    (define-key me/run-map (kbd "f") #'me/java-format)))
   :preface
-  (defun me/java-project-root ()
-    "Find the project root by looking for pom.xml or build.gradle."
-    (or (locate-dominating-file default-directory "pom.xml")
-        (locate-dominating-file default-directory "build.gradle")
-        (locate-dominating-file default-directory "build.gradle.kts")
-        default-directory))
-
   (defun me/java-build-tool ()
-    "Detect which build tool the project uses."
-    (let ((root (me/java-project-root)))
-      (cond
-       ((file-exists-p (expand-file-name "pom.xml" root)) "mvn")
-       ((or (file-exists-p (expand-file-name "build.gradle" root))
-            (file-exists-p (expand-file-name "build.gradle.kts" root))) "gradle")
-       (t nil))))
+    "Return the build tool symbol for the current project: `mvn', `gradle' or nil."
+    (cond
+     ((locate-dominating-file default-directory "pom.xml")          'mvn)
+     ((locate-dominating-file default-directory "build.gradle")     'gradle)
+     ((locate-dominating-file default-directory "build.gradle.kts") 'gradle)
+     (t nil)))
+
+  (defun me/java-project-root ()
+    "Return the project root directory for the current Java project."
+    (pcase (me/java-build-tool)
+      ('mvn    (locate-dominating-file default-directory "pom.xml"))
+      ('gradle (or (locate-dominating-file default-directory "build.gradle")
+                   (locate-dominating-file default-directory "build.gradle.kts")))
+      (_       default-directory)))
 
   (defun me/java-run ()
-    "Run the main class of the current Java project."
+    "Run the current Java project using Maven or Gradle."
     (interactive)
-    (let* ((root (me/java-project-root))
-           (tool (me/java-build-tool))
-           (default-directory root))
-      (cond
-       ((string= tool "mvn")
-        (compile "mvn compile exec:java"))
-       ((string= tool "gradle")
-        (compile "./gradlew run"))
-       (t
-        ;; Fallback: compile and run current file directly
-        (let* ((class-name (file-name-sans-extension (file-name-nondirectory buffer-file-name)))
-               (compile-cmd (format "javac %s && java %s"
-                                   (shell-quote-argument buffer-file-name)
-                                   class-name)))
-          (compile compile-cmd))))))
+    (let ((default-directory (me/java-project-root)))
+      (pcase (me/java-build-tool)
+        ('mvn    (compile "mvn compile exec:java"))
+        ('gradle (compile "./gradlew run"))
+        (_       (compile (format "javac %s && java %s"
+                                  (shell-quote-argument buffer-file-name)
+                                  (file-name-sans-extension
+                                   (file-name-nondirectory buffer-file-name))))))))
 
   (defun me/java-test ()
-    "Run tests for the current Java project."
+    "Run tests for the current Java project using Maven or Gradle."
     (interactive)
-    (let* ((root (me/java-project-root))
-           (tool (me/java-build-tool))
-           (default-directory root))
-      (cond
-       ((string= tool "mvn")
-        (compile "mvn test"))
-       ((string= tool "gradle")
-        (compile "./gradlew test"))
-       (t
-        (message "No build tool detected. Please use Maven or Gradle.")))))
+    (let ((default-directory (me/java-project-root)))
+      (pcase (me/java-build-tool)
+        ('mvn    (compile "mvn test"))
+        ('gradle (compile "./gradlew test"))
+        (_       (message "No build tool detected. Please use Maven or Gradle.")))))
 
   (defun me/java-build ()
-    "Build the current Java project."
+    "Build the current Java project using Maven or Gradle."
     (interactive)
-    (let* ((root (me/java-project-root))
-           (tool (me/java-build-tool))
-           (default-directory root))
-      (cond
-       ((string= tool "mvn")
-        (compile "mvn compile"))
-       ((string= tool "gradle")
-        (compile "./gradlew build"))
-       (t
-        (compile (format "javac %s" (shell-quote-argument buffer-file-name)))))))
+    (let ((default-directory (me/java-project-root)))
+      (pcase (me/java-build-tool)
+        ('mvn    (compile "mvn compile"))
+        ('gradle (compile "./gradlew build"))
+        (_       (compile (format "javac %s"
+                                  (shell-quote-argument buffer-file-name)))))))
 
   (defun me/java-clean ()
-    "Clean build artifacts."
+    "Clean build artifacts using Maven or Gradle."
     (interactive)
-    (let* ((root (me/java-project-root))
-           (tool (me/java-build-tool))
-           (default-directory root))
-      (cond
-       ((string= tool "mvn")
-        (compile "mvn clean"))
-       ((string= tool "gradle")
-        (compile "./gradlew clean"))
-       (t
-        (message "No build tool detected.")))))
+    (let ((default-directory (me/java-project-root)))
+      (pcase (me/java-build-tool)
+        ('mvn    (compile "mvn clean"))
+        ('gradle (compile "./gradlew clean"))
+        (_       (message "No build tool detected.")))))
 
   (defun me/java-format ()
-    "Format current buffer using google-java-format."
+    "Format the current buffer using apheleia (google-java-format)."
     (interactive)
-    (if (executable-find "google-java-format")
-        (progn
-          (shell-command-to-string
-           (format "google-java-format --aosp --replace %s"
-                   (shell-quote-argument buffer-file-name)))
-          (me/revert-buffer-no-confirm)
-          (message "Formatted %s" (file-name-nondirectory buffer-file-name)))
-      (message "google-java-format not found. Install it first.")))
-
-  (defun me/java-check ()
-    "Check current file/project for style violations using checkstyle."
-    (interactive)
-    (let* ((root (me/java-project-root))
-           (tool (me/java-build-tool))
-           (default-directory root))
-      (if (string= tool "mvn")
-          (compile "mvn checkstyle:check")
-        ;; Fallback: just compile to check for errors
-        (compile (format "javac %s" (shell-quote-argument buffer-file-name))))))
+    (apheleia-format-buffer '(google-java-format)))
 
   :config
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  '(java-ts-mode . ("jdtls")))))
+
+;;; gradle-mode — syntax and commands for Gradle build files
+(use-package gradle-mode
+  :mode
+  ("\\.gradle\\'"     . gradle-mode)
+  ("\\.gradle.kts\\'" . gradle-mode))
+
+;;; maven-test-mode — run Maven tests and navigate to failures
+(use-package maven-test-mode
+  :after java-ts-mode
+  :hook
+  (java-ts-mode . maven-test-mode)
+  (java-ts-mode . (lambda ()
+                    (define-key me/run-map (kbd "t a") #'maven-test-all)
+                    (define-key me/run-map (kbd "t c") #'maven-test-class)
+                    (define-key me/run-map (kbd "t f") #'maven-test-method)
+                    (define-key me/run-map (kbd "t r") #'maven-test-rerun))))

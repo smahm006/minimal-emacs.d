@@ -10,7 +10,7 @@
 !pre-init.el
 !post-init.el
 !snippets/
-!snippets/*.el
+!snippets/*.eld
 !config/
 !config/*.el
 !languages/

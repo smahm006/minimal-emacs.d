@@ -1,86 +1,76 @@
-;;; python.el --- Python customization  -*- no-byte-compile: t; lexical-binding: t; -*-
+;;; python.el --- Python configuration -*- no-byte-compile: t; lexical-binding: t; -*-
 
 (use-package python
   :ensure nil
   :mode (("\\.py\\'" . python-ts-mode))
   :hook
   (python-ts-mode . eglot-ensure)
-  :hook
   (python-ts-mode . (lambda ()
-                      (define-key me/run-map (kbd "v") #'me/pyrightconfig-write)
-                      (define-key me/run-map (kbd "V") #'me/python-venv-setup)
                       (define-key me/run-map (kbd "r") #'me/python-run)
                       (define-key me/run-map (kbd "c") #'me/python-check)
                       (define-key me/run-map (kbd "f") #'me/python-format)
-                      (define-key me/run-map (kbd "w") #'me/python-fix)
-                      (local-set-key [remap backward-sexp] #'python-nav-backward-sexp-safe)
-                      (local-set-key [remap forward-sexp] #'python-nav-forward-sexp-safe)))
+                      (define-key me/run-map (kbd "w") #'me/python-fix)))
   :preface
-  (defun me/pyrightconfig-write (virtualenv)
-    "Write a `pyrightconfig.json' file at the Git root of a project
-         with `venvPath' and `venv' set to the absolute path of
-         `virtualenv'. When run interactively, prompts for a directory."
-    (interactive "DEnv: ")
-    (let* ((venv-dir (if (featurep 'tramp)
-                         (tramp-file-local-name (file-truename virtualenv))
-                       (file-truename virtualenv)))
-           (venv-file-name (directory-file-name venv-dir))
-           (venvPath (file-name-directory venv-file-name))
-           (venv (file-name-base venv-file-name))
-           (base-dir (vc-git-root default-directory))
-           (out-file (expand-file-name "pyrightconfig.json" base-dir))
-           (out-contents (json-encode (list :venvPath venvPath :venv venv))))
-      (with-temp-file out-file (insert out-contents))
-      (message "Configured `%s` to use environment `%s`" out-file venv-dir)))
-  (defun me/python-venv-setup ()
-    "Install .pyvenv virtual environment at the root of the project.
-         Additionally installed libraries from requirements.txt if it exists."
-    (interactive)
-    (let* ((base-dir (vc-git-root default-directory)) (venv-dir (concat base-dir ".venv")))
-      (progn
-        (save-window-excursion
-          (shell-command (s-concat "python3 -m venv " venv-dir)pp)
-          (when (file-exists-p (concat base-dir "requirements.txt"))
-            (shell-command (s-concat "source " venv-dir "/bin/activate && pip3 install -r " base-dir "requirements.txt")))
-          (me/pyrightconfig-write venv-dir)))
-      (message (concat "Created " venv-dir))))
   (defun me/python-run ()
-    "Run current buffer with python, activating .venv if present."
+    "Run the current file using uv run.
+If a uv-managed project is detected (pyproject.toml), uses `uv run python'.
+Otherwise falls back to plain `python3'."
     (interactive)
-    (let* ((root (or (locate-dominating-file buffer-file-name ".venv")
-                     default-directory))
-           (venv-activate (expand-file-name ".venv/bin/activate" root))
-           (cmd (if (file-exists-p venv-activate)
-                    (format "bash -c 'source %s && python3 %s'"
-                            (shell-quote-argument venv-activate)
-                            (shell-quote-argument buffer-file-name))
+    (let* ((root (locate-dominating-file buffer-file-name "pyproject.toml"))
+           (cmd (if root
+                    (let ((default-directory root))
+                      (format "uv run python %s"
+                              (shell-quote-argument buffer-file-name)))
                   (format "python3 %s"
                           (shell-quote-argument buffer-file-name)))))
       (compile cmd)))
   (defun me/python-format ()
-    "Format buffer using ruff"
+    "Format the current buffer using apheleia (ruff-isort + ruff format)."
     (interactive)
-    (let ((output (shell-command-to-string (format "ruff format %s" (shell-quote-argument buffer-file-name)))))
-      (message "%s" (string-trim output)))
-    (me/revert-buffer-no-confirm))
+    (apheleia-format-buffer '(ruff-isort ruff)))
   (defun me/python-fix ()
-    "Check for and fix any errors"
+    "Fix auto-fixable lint errors in-place using apheleia (ruff check --fix)."
     (interactive)
-    (let ((output (shell-command-to-string (format "ruff check --fix %s" (shell-quote-argument buffer-file-name)))))
-      (message "%s" (string-trim output)))
-    (me/revert-buffer-no-confirm))
+    (apheleia-format-buffer '(ruff-fix)))
   (defun me/python-check ()
-    "Compile current buffer file with python."
+    "Check the current buffer for lint errors using ruff."
     (interactive)
-    (compile (format "ruff check %s" (shell-quote-argument buffer-file-name))))
+    (compile (format "ruff check --color never %s"
+                     (shell-quote-argument buffer-file-name))))
   :config
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  '(python-ts-mode . ("ty" "server")))))
 
-
-(use-package sphinx-doc
+;;; pet — detect the correct Python executable for the current project
+;; Supports uv, venv, conda, poetry and pipenv automatically.
+;; Tells eglot and flymake which Python to use without manual config.
+(use-package pet
   :hook
-  (python-ts-mode . sphinx-doc-mode)
+  (python-ts-mode . pet-mode)
+  (python-ts-mode . me/python-setup-pet)
+  :preface
+  (defun me/python-setup-pet ()
+    "Configure eglot and flyspell to use the pet-detected Python."
+    (when (featurep 'eglot)
+      (setq-local eglot-workspace-configuration
+                  `(:python (:pythonPath ,(pet-executable-find "python")))))))
+
+;;; pytest — run pytest from Emacs and navigate to failures
+(use-package python-pytest
+  :after python
+  :hook
   (python-ts-mode . (lambda ()
-                      (define-key me/run-map (kbd "d") #'sphinx-doc))))
+                      (define-key me/run-map (kbd "t t") #'python-pytest-file)
+                      (define-key me/run-map (kbd "t f") #'python-pytest-run-def-at-point-treesit)
+                      (define-key me/run-map (kbd "t c") #'python-pytest-run-class-at-point-treesit)
+                      (define-key me/run-map (kbd "t a") #'python-pytest)
+                      (define-key me/run-map (kbd "t r") #'python-pytest-last-failed)))
+  :custom
+  (python-pytest-executable "uv run pytest"))
+
+;;; pip-requirements — syntax support for requirements.txt files
+(use-package pip-requirements
+  :mode
+  ("requirements\\(?:\\-.+\\)?\\.txt\\'" . pip-requirements-mode)
+  ("requirements\\.in\\'"                . pip-requirements-mode))

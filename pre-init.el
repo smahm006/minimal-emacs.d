@@ -1,81 +1,138 @@
-;;; pre-init.el --- Pre-Init.el  -*- no-byte-compile: t; lexical-binding: t; -*-
+;;; pre-init.el --- Pre-init customization -*- no-byte-compile: t; lexical-binding: t; -*-
 
-;; User configuration
+;;; User info
 (setq user-full-name "Sohaib Mahmood")
 (setq user-mail-address "soh.mahmood@fastmail.com")
 
-;; Merge system's and Emacs' clipboard
-(setq select-enable-clipboard t)
+;;; Elpaca bootstrap
+(defvar elpaca-installer-version 0.12)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-sources-directory (expand-file-name "sources/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil :depth 1 :inherit ignore
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca-activate)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-sources-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (<= emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
 
-;; Keybind settings
-(global-unset-key (kbd "C-z"))
-(global-unset-key (kbd "C-x C-z"))
+;; Enable 'elpaca-no-symlink-mode' on Windows, as symlink creation
+;; often fails without Administrator privileges or Developer Mode.
+(when (eq system-type 'windows-nt)
+  (elpaca-no-symlink-mode 1))
 
-;; Useful Functions
+;; Install use-package support and enable :ensure support for Elpaca.
+(elpaca elpaca-use-package
+  (elpaca-use-package-mode))
+
+;; Block until all queued Elpaca packages (above) are ready before
+;; continuing. This ensures use-package is available for the rest of
+;; pre-init.el and all subsequent config files.
+(use-package compat :demand t)
+(use-package transient :demand t)
+(elpaca-wait)
+
+;; Default all use-package declarations to :ensure t so only built-in
+;; packages need an explicit :ensure nil to opt out.
+(setq use-package-always-ensure t)
+
+;;; Clipboard / kill-ring integration
+(setq save-interprogram-paste-before-kill t)
+(setq yank-pop-change-selection t)
+
+;;; Keybind prefix maps
+;; These are defined here (before any config file loads) so that every
+;; use-package :bind in config/* and languages/* can reference them safely.
+(defvar-keymap me/org-map       :doc "Prefix map for Org commands.")
+(defvar-keymap me/note-map      :doc "Prefix map for note-taking commands.")
+(defvar-keymap me/window-map    :doc "Prefix map for window commands.")
+(defvar-keymap me/buffer-map    :doc "Prefix map for buffer commands.")
+(defvar-keymap me/file-map      :doc "Prefix map for file commands.")
+(defvar-keymap me/project-map   :doc "Prefix map for project commands.")
+(defvar-keymap me/search-map    :doc "Prefix map for search commands.")
+(defvar-keymap me/goto-map      :doc "Prefix map for goto/navigation commands.")
+(defvar-keymap me/mc-map        :doc "Prefix map for multiple-cursors commands.")
+(defvar-keymap me/vc-map        :doc "Prefix map for version control commands.")
+(defvar-keymap me/lsp-map       :doc "Prefix map for LSP/eglot commands.")
+(defvar-keymap me/container-map :doc "Prefix map for container commands.")
+(defvar-keymap me/run-map       :doc "Prefix map for run/compile commands.")
+(defvar-keymap me/treesit-map   :doc "Prefix map for treesitter commands.")
+(defvar-keymap me/word-map      :doc "Prefix map for word and text commands.")
+
+(keymap-set global-map "C-c o" me/org-map)
+(keymap-set global-map "C-c n" me/note-map)
+(keymap-set global-map "C-c w" me/window-map)
+(keymap-set global-map "C-c b" me/buffer-map)
+(keymap-set global-map "C-c f" me/file-map)
+(keymap-set global-map "C-c p" project-prefix-map)
+(keymap-set global-map "C-c s" me/search-map)
+(keymap-set global-map "C-c g" me/goto-map)
+(keymap-set global-map "C-c m" me/mc-map)
+(keymap-set global-map "C-c v" me/vc-map)
+(keymap-set global-map "C-c l" me/lsp-map)
+(keymap-set global-map "C-c d" me/container-map)
+(keymap-set global-map "C-c r" me/run-map)
+(keymap-set global-map "C-c t" me/treesit-map)
+(keymap-set global-map "C-c j" me/word-map)
+
+;;; Utility functions
 (defun me/revert-buffer-no-confirm ()
-  "Revert buffer without confirmation."
+  "Revert the current buffer without asking for confirmation."
   (interactive)
-  (revert-buffer :ignore-auto :noconfirm))
+  (revert-buffer nil t t))
 
-(defun me/mkdir (dir-path)
-  "Make directory in DIR-PATH if it doesn't exist."
-  (unless (file-exists-p dir-path)
-    (make-directory dir-path t)))
+(defun me/mkdir (dir)
+  "Create DIR and all parent directories if they don't exist."
+  (unless (file-exists-p dir)
+    (make-directory dir t)))
 
 (defun me/location ()
-  "Return 'home' if system-name starts with 'sm-', otherwise return 'work'."
-  (if (string-match-p "^sm-" (system-name))
-      "home"
-    "work"))
+  "Return the current machine location: \\='home or \\='work."
+  (if (string-prefix-p "sm-" (system-name))
+      'home
+    'work))
 
-;; Keymaps
-(defvar me/org-map (make-sparse-keymap) "key-map for org commands")
-(defvar me/note-map (make-sparse-keymap) "key-map for note taking commands")
-(defvar me/window-map (make-sparse-keymap) "key-map for window commands")
-(defvar me/buffer-map (make-sparse-keymap) "key-map for buffer commands")
-(defvar me/file-map (make-sparse-keymap) "key-map for file commands")
-(defvar me/search-map (make-sparse-keymap) "key-map for searching")
-(defvar me/goto-map (make-sparse-keymap) "key-map for going to places")
-(defvar me/mc-map (make-sparse-keymap) "key-map for multiple cursors commands")
-(defvar me/vc-map (make-sparse-keymap) "key-map for version control commands")
-(defvar me/lsp-map (make-sparse-keymap) "key-map for language server protocol commands")
-(defvar me/container-map (make-sparse-keymap) "key-map for container commands")
-(defvar me/run-map (make-sparse-keymap) "key-map for running program specific commands")
-(define-key mode-specific-map (kbd "o") (cons "org" me/org-map))
-(define-key mode-specific-map (kbd "n") (cons "note" me/note-map))
-(define-key mode-specific-map (kbd "w") (cons "window" me/window-map))
-(define-key mode-specific-map (kbd "b") (cons "buffer" me/buffer-map))
-(define-key mode-specific-map (kbd "f") (cons "file" me/file-map))
-(define-key mode-specific-map (kbd "p") (cons "project" project-prefix-map))
-(define-key mode-specific-map (kbd "s") (cons "search" me/search-map))
-(define-key mode-specific-map (kbd "g") (cons "goto" me/goto-map))
-(define-key mode-specific-map (kbd "m") (cons "multi" me/mc-map))
-(define-key mode-specific-map (kbd "v") (cons "version control" me/vc-map))
-(define-key mode-specific-map (kbd "l") (cons "langauge server protocol" me/lsp-map))
-(define-key mode-specific-map (kbd "c") (cons "container" me/container-map))
-(define-key mode-specific-map (kbd "r") (cons "run" me/run-map))
-
-;; Custom Modes
+;;; Sensitive file mode
+;; Disable backups and auto-save for files that should never be written to disk.
 (define-minor-mode sensitive-mode
-  "Minor mode for sensitive files like password lists.
-
-Disables backups and auto-saving. With no argument, this command
-toggles the mode. Non-null prefix argument turns on the mode.
-Null prefix argument turns off the mode.
-
-See more from https://anirudhsasikumar.net/blog/2005.01.21.html"
+  "For sensitive files, do not write backups or auto-saves."
   :init-value nil
-  :lighter " Sensitive"
-  :keymap nil
   (if sensitive-mode
       (progn
-        ;; Disable backups
-        (set (make-local-variable 'backup-inhibited) t)
-        ;; Disable auto-save
-        (when auto-save-default
-          (auto-save-mode -1)))
-    ;; Resort to default value of backup-inhibited
-    (kill-local-variable 'backup-inhibited)
-    ;; Restore auto-save if default enabled
-    (when auto-save-default
-      (auto-save-mode 1))))
+        (setq-local make-backup-files nil)
+        (setq-local auto-save-default nil))
+    (setq-local make-backup-files (default-value 'make-backup-files))
+    (auto-save-mode (if (default-value 'auto-save-default) 1 -1))))
+
+(setq auto-mode-alist
+      (append '(("\\.vcf$" . sensitive-mode)
+                ("\\.gpg$" . sensitive-mode))
+              auto-mode-alist))

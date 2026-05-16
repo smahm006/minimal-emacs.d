@@ -1,4 +1,4 @@
-;;; rust.el --- Rust customization  -*- no-byte-compile: t; lexical-binding: t; -*-
+2;;; rust.el --- Rust language configuration -*- no-byte-compile: t; lexical-binding: t; -*-
 
 (use-package rust
   :ensure nil
@@ -10,27 +10,35 @@
                     (define-key me/run-map (kbd "c") #'me/rust-check)
                     (define-key me/run-map (kbd "f") #'me/rust-format)))
   :preface
+  (defun me/rust-project-root ()
+    "Return the Cargo project root for the current buffer."
+    (or (locate-dominating-file buffer-file-name "Cargo.toml")
+        default-directory))
+
   (defun me/rust-run ()
-    "Compile current buffer file with rust."
+    "Run the current Rust project with cargo run."
     (interactive)
-    (compile (format "rustc %s" buffer-file-name)))
-  (defun me/rust-format ()
-    "Format currenpt buffer file with rustimports."
-    (interactive)
-    (let ((output (shell-command-to-string
-                   (format "rustfmt -q %s" (shell-quote-argument buffer-file-name)))))
-      (message "%s" (string-trim output)))
-    (me/revert-buffer-no-confirm))
+    (let ((default-directory (me/rust-project-root)))
+      (compile "cargo run")))
+
   (defun me/rust-check ()
-    "Check current buffer file with rustimports."
+    "Check the current Rust project with cargo clippy."
     (interactive)
-    (compile (format "rustfmt --color never --check %s" buffer-file-name)))
+    (let ((default-directory (me/rust-project-root)))
+      (compile "cargo clippy")))
+
+  (defun me/rust-format ()
+    "Format the current buffer using apheleia (rustfmt)."
+    (interactive)
+    (apheleia-format-buffer '(rustfmt)))
+
   :config
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
-                 '(rust-ts-mode . ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))))
+                 '(rust-ts-mode . ("rust-analyzer"
+                                   :initializationOptions
+                                   (:check (:command "clippy")))))))
 
-
+;;; cargo-mode — run Cargo commands from Emacs
 (use-package cargo-mode
-  :hook
-  (rust-ts-mode . cargo-minor-mode))
+  :hook (rust-ts-mode . cargo-minor-mode))

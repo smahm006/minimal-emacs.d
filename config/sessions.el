@@ -1,11 +1,9 @@
-;;; backup.el --- Backup & autosave configuration -*- no-byte-compile: t; lexical-binding: t; -*-
+;;; sessions.el --- Session persistence, backup and autosave -*- no-byte-compile: t; lexical-binding: t; -*-
 
-;;; savehist / saveplace
+;;; Minibuffer history
 (use-package savehist
   :ensure nil
-  :hook
-  (after-init . savehist-mode)
-  (after-init . save-place-mode)
+  :hook (elpaca-after-init . savehist-mode)
   :custom
   (history-delete-duplicates t)
   (history-length 500)
@@ -13,13 +11,16 @@
   (savehist-additional-variables
    '(kill-ring search-ring regexp-search-ring)))
 
-;;; recentf
+;;; Cursor position persistence
+(use-package saveplace
+  :ensure nil
+  :hook (elpaca-after-init . save-place-mode))
+
+;;; Recently opened files
 (use-package recentf
   :ensure nil
   :hook
-  (after-init . (lambda ()
-                  (let ((inhibit-message t))
-                    (recentf-mode 1))))
+  (elpaca-after-init . recentf-mode)
   (kill-emacs . recentf-cleanup)
   :bind
   ([remap recentf-open] . consult-recent-file)
@@ -32,14 +33,13 @@
   (recentf-max-saved-items 100)
   (recentf-save-file (format "%s/emacs/recentf" xdg-cache)))
 
-;;; auto-revert
-(use-package auto-revert
+;;; Auto-revert buffers when files change on disk
+(use-package autorevert
   :ensure nil
+  :hook (elpaca-after-init . global-auto-revert-mode)
   :bind
   (:map me/file-map
         ("x" . revert-buffer))
-  :hook
-  (after-init . global-auto-revert-mode)
   :custom
   (auto-revert-interval 1)
   (global-auto-revert-non-file-buffers t)
@@ -49,10 +49,9 @@
   :config
   (setq revert-without-query '(".*")))
 
-;;; super-save (modern autosave)
+;;; Super-save — autosave on focus/window events
 (use-package super-save
-  :hook
-  (after-init . super-save-mode)
+  :hook (elpaca-after-init . super-save-mode)
   :custom
   (super-save-auto-save-when-idle t)
   (super-save-idle-duration 5)
@@ -62,31 +61,28 @@
   (add-to-list 'super-save-triggers 'ace-window)
   (setq super-save-exclude '(".gpg")))
 
-;;; Force backup on save
+;;; Versioned backups
+;; Force a fresh backup on every save, not just the first.
 (defun me/force-backup-of-buffer ()
-  "Make a backup every time the file is saved."
+  "Force a new backup on every save by resetting the backed-up flag."
   (setq buffer-backed-up nil))
 (add-hook 'before-save-hook #'me/force-backup-of-buffer)
 
-;;; Backup settings (versioned backups)
-(setq auto-save-default nil)
-(setq backup-by-copying t)
-(setq vc-make-backup-files t)
-(setq version-control t)
+(setq auto-save-default nil)          ; super-save handles autosave
+(setq backup-by-copying t)            ; don't clobber symlinks
+(setq vc-make-backup-files t)         ; backup even VCS-tracked files
+(setq version-control t)              ; use numbered backups
 (setq make-backup-files t)
 (setq kept-new-versions 100)
 (setq kept-old-versions 2)
 (setq delete-old-versions t)
 (setq delete-by-moving-to-trash t)
 
-;;; Backup directory
-(defvar backup-save-dir (format "%s/emacs/backups/" xdg-data))
-(me/mkdir backup-save-dir)
+(defvar me/backup-dir (format "%s/emacs/backups/" xdg-data))
+(me/mkdir me/backup-dir)
+(setq backup-directory-alist `(("." . ,me/backup-dir)))
 
-(setq backup-directory-alist
-      `(("." . ,backup-save-dir)))
-
-;;; backup-walker
+;;; Backup walker — step through versioned backups of a file
 (use-package backup-walker
   :bind
   (:map me/file-map

@@ -1,23 +1,25 @@
-;;; pre-early-init.el --- Pre-Early-Init.el  -*- no-byte-compile: t; lexical-binding: t; -*-
+;;; pre-early-init.el --- Early init customization -*- no-byte-compile: t; lexical-binding: t; -*-
 
-;; Set debug mode on/off
-(setq debug-on-error nil)
+;;; Set debug mode on/off
+(setq debug-on-error t)
 
-;; Set XDG Base Directory variables
-;; https://wiki.archlinux.org/title/XDG_Base_Directory
-(defvar xdg-home (getenv "HOME"))
-(defvar xdg-state (getenv "XDG_STATE_HOME"))
-(defvar xdg-data (getenv "XDG_DATA_HOME"))
-(defvar xdg-config (getenv "XDG_CONFIG_HOME"))
-(defvar xdg-cache (getenv "XDG_CACHE_HOME"))
-(defvar xdg-lib (getenv "XDG_LIB_HOME"))
+;;; Package manager
+;; Disable the built-in package manager since Elpaca will replace it.
+(setq minimal-emacs-package-initialize-and-refresh nil)
 
-;; Move native compilation cache directory to xdg-cache
-(when (boundp 'native-comp-eln-load-path)
+;;; XDG Base Directory paths
+(defvar xdg-home (or (getenv "HOME") "~"))
+(defvar xdg-data (or (getenv "XDG_DATA_HOME") (expand-file-name "~/.local/share")))
+(defvar xdg-config (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config")))
+(defvar xdg-cache (or (getenv "XDG_CACHE_HOME") (expand-file-name "~/.cache")))
+
+;;; Native compilation cache
+;; Redirect the eln-cache to XDG_CACHE_HOME to keep config folder clean.
+(when (fboundp 'startup-redirect-eln-cache)
   (startup-redirect-eln-cache
-   (expand-file-name (format "%s/emacs/eln-cache/" xdg-cache))))
+   (expand-file-name "emacs/eln-cache/" xdg-cache)))
 
-;; Change the default emacs configuration dircetory to avoid cluttering main
+;;; Change the default emacs configuration dircetory to avoid cluttering main
 (setq minimal-emacs-user-directory user-emacs-directory)
 (setq minimal-emacs-var-dir (expand-file-name "var/" minimal-emacs-user-directory))
 (setq user-emacs-directory minimal-emacs-var-dir)

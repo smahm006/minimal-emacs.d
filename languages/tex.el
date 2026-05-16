@@ -1,33 +1,43 @@
-;;; tex.el --- LaTex customization  -*- no-byte-compile: t; lexical-binding: t; -*-
+;;; tex.el --- LaTeX configuration -*- no-byte-compile: t; lexical-binding: t; -*-
+
+;; Required system packages:
+;; texlive-latex-base
+;; texlive-latex-recommended
+;; texlive-fonts-recommended
+;; texlive-latex-extra
+;; texlive-bibtex-extra (if using citations)
+;; texlive-lang-(yourlang) (for non-English documents)
 
 (use-package auctex
-  ;; Requires the following packages
-  ;; texlive-latex-base
-  ;; texlive-latex-recommended
-  ;; texlive-fonts-recommended
-  ;; texlive-latex-extra
-  ;; texlive-bibtex-extra (if using citations)
-  ;; texlive-lang-(yourlang) (for any language you're writing documents in, except English)
   :hook
-  ((LaTeX-mode . LaTeX-preview-setup)
-   (LaTeX-mode . LaTeX-math-mode)
+  ((LaTeX-mode . LaTeX-math-mode)
    (LaTeX-mode . TeX-source-correlate-mode)
-   (LaTeX-mode . turn-on-reftex))
+   (LaTeX-mode . turn-on-reftex)
+   (LaTeX-mode . (lambda ()
+                   (define-key me/run-map (kbd "r") #'me/tex-compile)
+                   (define-key me/run-map (kbd "v") #'me/tex-view))))
+  :preface
+  (defun me/tex-compile ()
+    "Compile the current LaTeX document."
+    (interactive)
+    (TeX-command "LaTeX" #'TeX-master-file))
+
+  (defun me/tex-view ()
+    "View the compiled PDF output."
+    (interactive)
+    (TeX-command "View" #'TeX-master-file))
+
   :custom
-  ;; Use PDF Tools for pdf output
   (TeX-view-program-selection
-   '(((output-dvi has-no-display-manager)
-      "dvi2tty")
-     ((output-dvi style-pstricks)
-      "dvips and gv")
-     (output-dvi "xdvi")
-     (output-pdf "PDF Tools")
-     (output-html "xdg-open")))
-  (TeX-auto-save t)                          ; Enable auto-saving of TeX files
-  (TeX-parse-self t)                         ; Enable parsing of the current TeX file
-  (TeX-clean-confirm nil)                    ; Disable confirmation when cleaning
-  (TeX-clean-intermediate t)                 ; Clean intermediate files
-  (TeX-save-query nil)                       ; Disable query prompts when saving TeX files
-  (TeX-master nil)                           ; Ask for master document
-  (TeX-PDF-mode t)                           ; Enable PDF mode for TeX files
-  (TeX-source-correlate-start-server nil))   ; Don't start server for inverse search (is already running)
+   '(((output-dvi has-no-display-manager) "dvi2tty")
+     ((output-dvi style-pstricks)         "dvips and gv")
+     (output-dvi                          "xdvi")
+     (output-pdf                          "PDF Tools")
+     (output-html                         "xdg-open")))
+  (TeX-auto-save t)
+  (TeX-parse-self t)
+  (TeX-clean-confirm nil)
+  (TeX-save-query nil)
+  (TeX-master nil)
+  (TeX-PDF-mode t)
+  (TeX-source-correlate-start-server t))  ; enable inverse search with pdf-tools
