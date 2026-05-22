@@ -57,7 +57,7 @@
   :custom
   (completion-category-defaults nil)  ; let orderless handle eglot candidates
   (eglot-autoshutdown t)
-  (eglot-send-changes-idle-time 3)
+  (eglot-send-changes-idle-time 0.5)
   :config
   ;; Continuously update candidates using cape cache buster
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
@@ -105,7 +105,7 @@
   (flymake-suppress-zero-counters t)
   (flymake-start-on-flymake-mode t)
   (flymake-start-on-save-buffer t)
-  (flymake-no-changes-timeout 0.1)
+  (flymake-no-changes-timeout 0.5)
   (flymake-proc-compilation-prevents-syntax-check t)
   (flymake-wrap-around nil)
   (flymake-mode-line-format
@@ -129,7 +129,7 @@
   (setf (alist-get 'ruff-fix apheleia-formatters)
         '("ruff" "check" "--fix" "--stdin-filename" filepath "-"))
   (setf (alist-get 'yamlfmt apheleia-formatters)
-        '("yamlfmt" "-in"))
+      '("yamlfmt"))
   (setf (alist-get 'zig-fmt apheleia-formatters)
         '("zig" "fmt" "--stdin"))
   ;; Relevant Modes
