@@ -4,7 +4,7 @@
 ;; URL: https://github.com/jamescherti/minimal-emacs.d
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: maint
-;; Version: 1.4.2
+;; Version: 1.5.1
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;;; Commentary:
@@ -53,12 +53,6 @@
     (setq use-short-answers t)
   (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
-;;; Undo/redo
-
-(setq undo-limit (* 13 160000)
-      undo-strong-limit (* 13 240000)
-      undo-outer-limit (* 13 24000000))
-
 ;;; package.el
 
 (when (and (bound-and-true-p minimal-emacs-package-initialize-and-refresh)
@@ -71,6 +65,35 @@
              (not (package-installed-p 'use-package)))
     (package-install 'use-package))
   (require 'use-package))
+
+;;; Misc
+
+(setq undo-limit (* 13 160000)
+      undo-strong-limit (* 13 240000)
+      undo-outer-limit (* 13 24000000))
+
+(setq whitespace-line-column nil)  ; Use the value of `fill-column'.
+
+;; Disable ellipsis when printing s-expressions in the message buffer
+(setq eval-expression-print-length nil
+      eval-expression-print-level nil)
+
+;; This directs gpg-agent to use the minibuffer for passphrase entry
+(setq epg-pinentry-mode 'loopback)
+
+;; By default, Emacs stores sensitive authinfo credentials as unencrypted text
+;; in your home directory. Use GPG to encrypt the authinfo file for enhanced
+;; security.
+(setq auth-sources (list "~/.authinfo.gpg"))
+
+;; Speed up 'find-library' and reduce completion clutter by excluding internal
+;; helper files. This provides a library-focused list.
+(setq find-library-include-other-files nil)
+
+;; Protect the system from code injection vulnerabilities when browsing files.
+;; Disabling local 'eval' expressions ensures that opening a malicious project
+;; or third-party script cannot execute arbitrary Lisp code on your machine.
+(setq enable-local-eval nil)
 
 ;;; Minibuffer
 
@@ -85,7 +108,9 @@
 
 ;; By default, Emacs "updates" its ui more often than it needs to
 (setq which-func-update-delay 1.0)
-(setq idle-update-delay which-func-update-delay)  ;; Obsolete in >= 30.1
+(with-no-warnings
+  ;; Obsolete in >= 30.1
+  (setq idle-update-delay which-func-update-delay))
 
 (defalias #'view-hello-file #'ignore)  ; Never show the hello file
 
@@ -99,6 +124,9 @@
 (setq truncate-string-ellipsis "…")
 
 (setq display-time-default-load-average nil) ; Omit load average
+
+;; Force the mouse to paste text at the active cursor position.
+(setq mouse-yank-at-point t)
 
 ;;; Show-paren
 
@@ -120,27 +148,9 @@
 
 (setq uniquify-buffer-name-style 'forward)
 
-(setq remote-file-name-inhibit-cache 50)
-
 ;; Disable fontification during user input to reduce lag in large buffers.
 ;; Also helps marginally with scrolling performance.
 (setq redisplay-skip-fontification-on-input t)
-
-;;; Misc
-
-(setq whitespace-line-column nil)  ; Use the value of `fill-column'.
-
-;; Disable ellipsis when printing s-expressions in the message buffer
-(setq eval-expression-print-length nil
-      eval-expression-print-level nil)
-
-;; This directs gpg-agent to use the minibuffer for passphrase entry
-(setq epg-pinentry-mode 'loopback)
-
-;; By default, Emacs stores sensitive authinfo credentials as unencrypted text
-;; in your home directory. Use GPG to encrypt the authinfo file for enhanced
-;; security.
-(setq auth-sources (list "~/.authinfo.gpg"))
 
 ;;; `display-line-numbers-mode'
 
@@ -158,7 +168,11 @@
 
 ;;; Tramp
 
-(setq tramp-verbose 1)
+(setq tramp-verbose 1
+      remote-file-name-inhibit-cache 50
+      ;; Disable lockfiles and auto-saves for remote files to eliminate lag
+      remote-file-name-inhibit-locks t
+      remote-file-name-inhibit-auto-save-visited t)
 
 ;;; Files
 
@@ -181,6 +195,10 @@
 (setq split-width-threshold 170
       split-height-threshold nil)
 
+;; Increase threshold for large-file warning to reduce prompts when opening
+;; moderately large files while still preserving safeguards for large files.
+(setq large-file-warning-threshold (* 100 1024 1024)) ; 100 Mb
+
 ;;; comint (general command interpreter in a window)
 
 (setq ansi-color-for-comint-mode t
@@ -191,6 +209,9 @@
 
 (setq compilation-ask-about-save nil
       compilation-always-kill t
+      ;; Parse up to 2048 characters per line in compilation buffers. This
+      ;; safely catches deep errors and long paths without risking hangs.
+      compilation-max-output-line-length 2048
       compilation-scroll-output 'first-error)
 
 ;; Skip confirmation prompts when creating a new file or buffer
@@ -248,8 +269,14 @@
 
 (setq auto-save-file-name-transforms
       `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'"
+         ;; Redirect TRAMP (remote) file auto-saves to the local machine
+         ;; (prefixed with "tramp-") to prevent Emacs from hanging due to
+         ;; network latency during auto-save operations.
          ,(file-name-concat auto-save-list-file-prefix "tramp-\\2-") sha1)
         ("\\`/\\([^/]+/\\)*\\([^/]+\\)\\'"
+         ;; Redirect absolute file paths auto-saves to the
+         ;; `auto-save-list-file-prefix' directory. This appends the base
+         ;; filename to the prefix, avoiding #file.txt# files across the system.
          ,(file-name-concat auto-save-list-file-prefix "\\2-") sha1)))
 
 ;; Ensure the directory for auto-save session logs exists with restricted
@@ -279,7 +306,6 @@
 ;; `recentf' is an that maintains a list of recently accessed files.
 (setq recentf-max-saved-items 300) ; default is 20
 (setq recentf-max-menu-items 15)
-(setq recentf-auto-cleanup 'mode)
 
 ;;; saveplace
 
@@ -300,6 +326,7 @@
 ;;; Frames and windows
 
 (setq resize-mini-windows 'grow-only)
+(setq max-mini-window-height 0.33)
 
 ;; The native border "uses" a pixel of the fringe on the rightmost
 ;; splits, whereas `window-divider-mode' does not.
@@ -409,6 +436,18 @@
 ;; Eliminate delay before highlighting search matches
 (setq lazy-highlight-initial-delay 0)
 
+;; Only affect leading indentation. This prevents destroying mid-line visual
+;; alignments, such as aligning variable assignments or trailing comments, by
+;; ensuring spaces in the middle of a line are never converted to tabs.
+(setq tabify-regexp (rx line-start (zero-or-more ?\t) ?\s (one-or-more blank)))
+
+;; Prevent Emacs filling commands (such as `fill-paragraph', `fill-region',
+;; `auto-fill-mode', and Evil's `gq' operator) from inserting line breaks inside
+;; text that is currently hidden via text properties. This prevents accidental
+;; corruption of folded outlines (e.g., in Org or Outline mode) and concealed
+;; markup (e.g., hidden Markdown URLs).
+(setq fill-nobreak-invisible t)
+
 ;;; Filetype
 
 ;; Do not notify the user each time Python tries to guess the indentation offset
@@ -462,6 +501,11 @@
 ;; Configure Ediff to use a single frame and split windows horizontally
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
+
+;;; Diff
+
+;; Move +/- indicators to the fringe for cleaner diffs
+(setq diff-font-lock-prettify t)
 
 ;;; Help
 
