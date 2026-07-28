@@ -72,11 +72,9 @@
 ;; These are defined here (before any config file loads) so that every
 ;; use-package :bind in config/* and languages/* can reference them safely.
 (defvar-keymap me/org-map       :doc "Prefix map for Org commands.")
-(defvar-keymap me/note-map      :doc "Prefix map for note-taking commands.")
 (defvar-keymap me/window-map    :doc "Prefix map for window commands.")
 (defvar-keymap me/buffer-map    :doc "Prefix map for buffer commands.")
 (defvar-keymap me/file-map      :doc "Prefix map for file commands.")
-(defvar-keymap me/project-map   :doc "Prefix map for project commands.")
 (defvar-keymap me/search-map    :doc "Prefix map for search commands.")
 (defvar-keymap me/goto-map      :doc "Prefix map for goto/navigation commands.")
 (defvar-keymap me/mc-map        :doc "Prefix map for multiple-cursors commands.")
@@ -86,9 +84,9 @@
 (defvar-keymap me/run-map       :doc "Prefix map for run/compile commands.")
 (defvar-keymap me/treesit-map   :doc "Prefix map for treesitter commands.")
 (defvar-keymap me/word-map      :doc "Prefix map for word and text commands.")
+(defvar-keymap me/ai-map        :doc "Prefix map for AI agent commands.")
 
 (keymap-set global-map "C-c o" me/org-map)
-(keymap-set global-map "C-c n" me/note-map)
 (keymap-set global-map "C-c w" me/window-map)
 (keymap-set global-map "C-c b" me/buffer-map)
 (keymap-set global-map "C-c f" me/file-map)
@@ -102,6 +100,7 @@
 (keymap-set global-map "C-c r" me/run-map)
 (keymap-set global-map "C-c t" me/treesit-map)
 (keymap-set global-map "C-c j" me/word-map)
+(keymap-set global-map "C-c a" me/ai-map)
 
 ;;; Utility functions
 (defun me/revert-buffer-no-confirm ()

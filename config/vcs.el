@@ -106,7 +106,12 @@
                 (set-face-foreground face color)
                 (set-face-background face nil)))
             '(diff-hl-insert diff-hl-delete diff-hl-change)))
+  (defun me/diff-hl-dired-no-query-on-exit (&rest _)
+    "Prevent the dired status process from prompting on kill."
+    (when-let ((proc (get-buffer-process diff-hl-dired-process-buffer)))
+      (set-process-query-on-exit-flag proc nil)))
   :config
+  (advice-add #'diff-hl-dired-update :after #'me/diff-hl-dired-no-query-on-exit)
   (advice-add #'diff-hl-inline-popup-show :around #'me/diff-hl-inline-popup-show-adv)
   (let* ((width 2)
          (bitmap (vector (1- (expt 2 width)))))

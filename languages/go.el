@@ -50,6 +50,6 @@ Otherwise falls back to running the current file directly."
   :hook
   (go-ts-mode . (lambda ()
                   (define-key me/run-map (kbd "t t") #'go-test-current-file)
-                  (define-key me/run-map (kbd "t f") #'me/go-test-current-test)
-                  (define-key me/run-map (kbd "t a") #'me/go-test-current-projectt)
+                  (define-key me/run-map (kbd "t f") #'go-test-current-test)
+                  (define-key me/run-map (kbd "t a") #'go-test-current-project)
                   (define-key me/run-map (kbd "t r") #'go-test-current-benchmark))))

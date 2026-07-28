@@ -93,7 +93,8 @@
           (project-find-dir     "Find dir"   "d")
           (project-dired        "Dired"      "D")
           (consult-ripgrep      "ripgrep"    "r")
-          (magit-project-status "Magit"      "m")))
+          (magit-project-status "Magit"      "m")
+          (agent-shell          "Agent"      "a")))
   (setq project-vc-extra-root-markers '(".project")))
 
 ;;; Dired — file manager
@@ -150,6 +151,7 @@
    ("M-p"       . dired-subtree-up))
   :hook
   (dired-sidebar-mode . me/dired-sidebar-auto-revert)
+  (dired-sidebar-mode . (lambda () (dired-omit-mode -1)))
   :preface
   (defun me/dired-sidebar-auto-revert ()
     "Enable auto-revert in dired-sidebar for local directories."

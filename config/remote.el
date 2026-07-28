@@ -31,6 +31,10 @@
 (use-package eat
   :bind
   ("C-x t" . eat)
+  :custom
+  ;; Starship already reports exit status. Eat's 0/X/- margin indicators only
+  ;; add a column that shifts the multi-line prompt's box-drawing out of line.
+  (eat-enable-shell-prompt-annotation nil)
   :config
   ;; Free up keys used for window switching and buffer fullscreen
   (define-key eat-semi-char-mode-map (kbd "M-o") nil)

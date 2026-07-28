@@ -23,6 +23,8 @@
           javascript
           css
           yaml
+          markdown
+          markdown-inline
           dockerfile))
   (treesit-auto-add-to-auto-mode-alist treesit-auto-langs)
   (global-treesit-auto-mode))
