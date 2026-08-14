@@ -82,7 +82,6 @@
 (defvar-keymap me/lsp-map       :doc "Prefix map for LSP/eglot commands.")
 (defvar-keymap me/container-map :doc "Prefix map for container commands.")
 (defvar-keymap me/run-map       :doc "Prefix map for run/compile commands.")
-(defvar-keymap me/treesit-map   :doc "Prefix map for treesitter commands.")
 (defvar-keymap me/word-map      :doc "Prefix map for word and text commands.")
 (defvar-keymap me/ai-map        :doc "Prefix map for AI agent commands.")
 
@@ -98,7 +97,6 @@
 (keymap-set global-map "C-c l" me/lsp-map)
 (keymap-set global-map "C-c d" me/container-map)
 (keymap-set global-map "C-c r" me/run-map)
-(keymap-set global-map "C-c t" me/treesit-map)
 (keymap-set global-map "C-c j" me/word-map)
 (keymap-set global-map "C-c a" me/ai-map)
 

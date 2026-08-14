@@ -17,6 +17,9 @@
 
 (use-package c
   :ensure nil
+  :mode
+  ("\\.c\\'" . c-ts-mode)
+  ("\\.h\\'" . c-ts-mode)
   :hook
   (c-ts-mode . eglot-ensure)
   (c-ts-mode . (lambda ()

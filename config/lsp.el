@@ -1,34 +1,5 @@
 ;;; lsp.el --- LSP, diagnostics and formatting -*- no-byte-compile: t; lexical-binding: t; -*-
 
-;;; treesit-auto — auto-install tree-sitter grammars and remap modes
-;; Must load before eglot and language files so grammars are available
-;; when major modes and LSP servers start up.
-(use-package treesit-auto
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (setq treesit-auto-langs
-        '(bash
-          c
-          cpp
-          go
-          java
-          json
-          python
-          zig
-          rust
-          toml
-          typescript
-          tsx
-          javascript
-          css
-          yaml
-          markdown
-          markdown-inline
-          dockerfile))
-  (treesit-auto-add-to-auto-mode-alist treesit-auto-langs)
-  (global-treesit-auto-mode))
-
 ;;; Eglot — built-in LSP client
 (use-package eglot
   :ensure nil
@@ -171,35 +142,3 @@
         '(prettier))
   (setf (alist-get 'yaml-ts-mode apheleia-mode-alist)
         '(yamlfmt)))
-
-
-(use-package treesit-fold
-  :commands (treesit-fold-close
-             treesit-fold-close-all
-             treesit-fold-open
-             treesit-fold-toggle
-             treesit-fold-open-all
-             treesit-fold-mode
-             global-treesit-fold-mode
-             treesit-fold-open-recursively
-             treesit-fold-line-comment-mode)
-  :custom
-  (treesit-fold-line-count-show t)
-  (setq treesit-fold-line-count-format " <%d lines> ")
-  :hook
-  (prog-mode . treesit-fold-mode)
-  (conf-mode . treesit-fold-mode)
-  (text-mode . treesit-fold-mode)
-  :bind
-  (:map me/treesit-map
-        ("t" . treesit-fold-toggle)
-        ("o" . treesit-fold-open)
-        ("O" . treesit-fold-open-all)
-        ("c" . treesit-fold-close)
-        ("C" . treesit-fold-close-all)
-        ("r" . treesit-fold-open-recursively))
-  :config
-  (set-face-attribute 'treesit-fold-replacement-face nil
-                      :foreground "#808080"
-                      :box nil
-                      :weight 'bold))

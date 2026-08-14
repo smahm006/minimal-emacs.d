@@ -158,21 +158,6 @@ With a prefix argument, copy the entire buffer to the kill-ring and clear it."
   (text-mode . dtrt-indent-mode)
   (conf-mode . dtrt-indent-mode))
 
-;;; Combobulate — structured editing via treesitter
-(use-package combobulate
-  :ensure (:host github :repo "mickeynp/combobulate")
-  :hook
-  (python-ts-mode    . combobulate-mode)
-  (js-ts-mode        . combobulate-mode)
-  (css-ts-mode       . combobulate-mode)
-  (yaml-ts-mode      . combobulate-mode)
-  (json-ts-mode      . combobulate-mode)
-  (toml-ts-mode      . combobulate-mode)
-  (typescript-ts-mode . combobulate-mode)
-  (tsx-ts-mode       . combobulate-mode)
-  (go-ts-mode        . combobulate-mode)
-  (rust-ts-mode      . combobulate-mode))
-
 ;;; Spellcheck
 ;; Use jinx (enchant-2) if available, otherwise fall back to flyspell (hunspell).
 (use-package jinx

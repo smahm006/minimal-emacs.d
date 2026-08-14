@@ -91,16 +91,7 @@
 (use-package indent-bars
   :hook (prog-mode . indent-bars-mode)
   :custom
-  (indent-bars-treesit-support t)
-  (indent-bars-treesit-ignore-blank-lines-types '("module"))
-  (indent-bars-treesit-wrap '((python
-                               argument_list parameters list list_comprehension
-                               dictionary dictionary_comprehension
-                               parenthesized_expression subscript)))
-  (indent-bars-treesit-scope '((python
-                                function_definition class_definition
-                                for_statement if_statement with_statement
-                                while_statement)))
+  (indent-bars-treesit-support nil)
   (indent-bars-color-by-depth nil)
   (indent-bars-highlight-current-depth '(:face default :blend 0.4))
   (indent-bars-pad-frac 0.1)

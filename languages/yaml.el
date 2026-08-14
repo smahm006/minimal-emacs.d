@@ -30,6 +30,10 @@
           '(:yaml (:schemaStore (:enable t)
                    :schemas (:default t))))))
 
+;; Keep the built-in tree-sitter mode association ahead of the legacy
+;; yaml-mode association when treesit-auto is not installed.
+(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
+
 ;;; flymake-yamllint — inline yamllint errors via flymake
 (use-package flymake-yamllint
   :hook (yaml-ts-mode . flymake-yamllint-setup))
