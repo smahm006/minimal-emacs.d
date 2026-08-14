@@ -5,20 +5,12 @@
   :mode
   ("\\.ts\\'"  . typescript-ts-mode)
   ("\\.tsx\\'" . tsx-ts-mode)
-  :hook
-  (typescript-ts-mode . eglot-ensure)
-  (tsx-ts-mode        . eglot-ensure)
-  (typescript-ts-mode . (lambda ()
-                          (define-key me/run-map (kbd "r") #'me/web-run)
-                          (define-key me/run-map (kbd "c") #'me/web-check)
-                          (define-key me/run-map (kbd "f") #'me/web-format)))
-  (tsx-ts-mode        . (lambda ()
-                          (define-key me/run-map (kbd "r") #'me/web-run)
-                          (define-key me/run-map (kbd "c") #'me/web-check)
-                          (define-key me/run-map (kbd "f") #'me/web-format)))
+  :bind (:map me/web-run-map ("r" . me/web-run) ("c" . me/web-check))
   :custom
   (typescript-ts-mode-indent-offset 2)
   :config
+  (me/enable-run-map typescript-ts-mode-map me/web-run-map)
+  (me/enable-run-map tsx-ts-mode-map me/web-run-map)
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  '((typescript-ts-mode tsx-ts-mode) .

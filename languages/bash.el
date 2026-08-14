@@ -9,35 +9,28 @@
   ("\\.bash_profile\\'" . bash-ts-mode)
   :interpreter ("bash" . bash-ts-mode)
   :hook
-  (bash-ts-mode . eglot-ensure)
   (bash-ts-mode . executable-make-buffer-file-executable-if-script-p)
-  (bash-ts-mode . (lambda ()
-                    (define-key me/run-map (kbd "r") #'me/bash-run)
-                    (define-key me/run-map (kbd "c") #'me/bash-check)
-                    (define-key me/run-map (kbd "f") #'me/bash-format)))
   ;; Fallback hooks for sh-mode when bash-ts-mode is unavailable
-  (sh-mode . eglot-ensure)
   (sh-mode . executable-make-buffer-file-executable-if-script-p)
-  (sh-mode . (lambda ()
-               (define-key me/run-map (kbd "r") #'me/bash-run)
-               (define-key me/run-map (kbd "c") #'me/bash-check)
-               (define-key me/run-map (kbd "f") #'me/bash-format)))
+
+  :bind
+  (:map me/bash-run-map
+        ("r" . me/bash-run)
+        ("c" . me/bash-check))
   :preface
   (defun me/bash-run ()
     "Run the current buffer with bash."
     (interactive)
-    (compile (format "bash %s"
-                     (shell-quote-argument buffer-file-name))))
-  (defun me/bash-format ()
-    "Format the current buffer using apheleia (shfmt)."
-    (interactive)
-    (apheleia-format-buffer '(shfmt)))
+    (let ((file (me/buffer-file-or-error)))
+      (compile (format "bash %s" (shell-quote-argument file)))))
   (defun me/bash-check ()
     "Check the current buffer with shellcheck."
     (interactive)
-    (compile (format "shellcheck %s"
-                     (shell-quote-argument buffer-file-name))))
+    (let ((file (me/buffer-file-or-error)))
+      (compile (format "shellcheck %s" (shell-quote-argument file)))))
   :config
+  (me/enable-run-map bash-ts-mode-map me/bash-run-map)
+  (me/enable-run-map sh-mode-map me/bash-run-map)
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  '((bash-ts-mode sh-mode) . ("bash-language-server" "start")))))

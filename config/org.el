@@ -51,8 +51,7 @@
   (org-src-tab-acts-natively t))
 
 ;;; org-modern — modernized org appearance
-;; Replaces org-superstar with a more comprehensive visual overhaul
-;; covering bullets, tables, keywords and source blocks.
+;; Styles bullets, tables, keywords and source blocks.
 (use-package org-modern
   :hook
   (org-mode        . org-modern-mode)
@@ -62,11 +61,7 @@
   (org-modern-list '((?* . "•") (?+ . "•") (?- . "•")))
   (org-modern-table t)
   (org-modern-keyword t)
-  (org-modern-block-fringe t)
-  (org-superstar-item-bullet-alist
-   '((?* . ?•)
-     (?+ . ?•)
-     (?- . ?•))))
+  (org-modern-block-fringe t))
 
 ;;; org-appear — toggle visibility of hidden elements on cursor entry
 (use-package org-appear
@@ -77,7 +72,7 @@
 
 ;;; toc-org — auto-generate table of contents in org files
 (use-package toc-org
-  :hook (org-mode . toc-org-mode))
+  :commands toc-org-mode)
 
 ;;; Org agenda
 (use-package org-agenda

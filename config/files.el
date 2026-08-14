@@ -56,12 +56,6 @@
   (uniquify-after-kill-buffer-p t)
   (uniquify-ignore-buffers-re "^\\*"))
 
-;;; Buffer terminator — auto-kill stale buffers
-(use-package buffer-terminator
-  :hook (elpaca-after-init . buffer-terminator-mode)
-  :custom
-  (buffer-terminator-verbose nil))
-
 ;;; Project management
 (use-package project
   :ensure nil
@@ -97,6 +91,29 @@
           (agent-shell          "Agent"      "a")))
   (setq project-vc-extra-root-markers '(".project")))
 
+(defun me/path-at-point ()
+  "Return the file represented by the current buffer or Dired point."
+  (if (derived-mode-p 'dired-mode)
+      (dired-get-file-for-visit)
+    (or buffer-file-name
+        (user-error "This command requires a file or Dired entry"))))
+
+(defun me/copy-file-path (arg)
+  "Copy a path to the kill ring.
+With no prefix, copy a project-relative path.  With `C-u', copy an absolute
+path.  With `C-u 0', copy only the basename."
+  (interactive "P")
+  (let* ((path (file-truename (me/path-at-point)))
+         (result
+          (cond
+           ((equal arg 0) (file-name-nondirectory path))
+           ((consp arg) path)
+           ((when-let* ((project (project-current)))
+              (file-relative-name path (project-root project))))
+           (t (user-error "No project found; use C-u for an absolute path")))))
+    (kill-new result)
+    (message "Copied %s" result)))
+
 ;;; Dired — file manager
 (use-package dired
   :ensure nil
@@ -113,13 +130,13 @@
   (:map me/file-map
         ("d" . me/dired-jump-and-revert)
         ("D" . dired)
-        ("f" . find-file-at-point))
+        ("f" . find-file-at-point)
+        ("y" . me/copy-file-path))
   :preface
   (defun me/dired-jump-and-revert ()
-    "Open dired at the current file's directory, refreshing the buffer."
+    "Open Dired at the current file's directory."
     (interactive)
-    (dired-jump)
-    (revert-buffer))
+    (dired-jump))
   (defun me/dired-kill-all-buffers ()
     "Kill all dired and image-dired buffers."
     (interactive)
@@ -139,27 +156,3 @@
   (dired-recursive-copies 'always)
   (dired-create-destination-dirs 'ask)
   (dired-clean-confirm-killing-deleted-buffers nil))
-
-;;; Dired sidebar — tree-style file explorer
-(use-package dired-sidebar
-  :bind
-  (("<f1>" . dired-sidebar-toggle-sidebar)
-   :map dired-sidebar-mode-map
-   ("<tab>"     . dired-sidebar-subtree-toggle)
-   ("M-n"       . dired-sidebar-subtree-toggle)
-   ("<backtab>" . dired-subtree-up)
-   ("M-p"       . dired-subtree-up))
-  :hook
-  (dired-sidebar-mode . me/dired-sidebar-auto-revert)
-  (dired-sidebar-mode . (lambda () (dired-omit-mode -1)))
-  :preface
-  (defun me/dired-sidebar-auto-revert ()
-    "Enable auto-revert in dired-sidebar for local directories."
-    (unless (file-remote-p default-directory)
-      (auto-revert-mode 1)))
-  :config
-  (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
-  (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
-  (setq dired-sidebar-theme 'nerd-icons)
-  (setq dired-sidebar-use-term-integration t)
-  (setq dired-sidebar-use-custom-font t))

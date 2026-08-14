@@ -3,14 +3,10 @@
 (use-package java-ts-mode
   :ensure nil
   :mode ("\\.java\\'" . java-ts-mode)
-  :hook
-  (java-ts-mode . eglot-ensure)
-  (java-ts-mode . (lambda ()
-                    (define-key me/run-map (kbd "r") #'me/java-run)
-                    (define-key me/run-map (kbd "t") #'me/java-test)
-                    (define-key me/run-map (kbd "b") #'me/java-build)
-                    (define-key me/run-map (kbd "C") #'me/java-clean)
-                    (define-key me/run-map (kbd "f") #'me/java-format)))
+  :bind
+  (:map me/java-run-map
+        ("r" . me/java-run) ("t" . me/java-test)
+        ("b" . me/java-build) ("C" . me/java-clean))
   :preface
   (defun me/java-build-tool ()
     "Return the build tool symbol for the current project: `mvn', `gradle' or nil."
@@ -68,12 +64,8 @@
         ('gradle (compile "./gradlew clean"))
         (_       (message "No build tool detected.")))))
 
-  (defun me/java-format ()
-    "Format the current buffer using apheleia (google-java-format)."
-    (interactive)
-    (apheleia-format-buffer '(google-java-format)))
-
   :config
+  (me/enable-run-map java-ts-mode-map me/java-run-map)
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  '(java-ts-mode . ("jdtls")))))
@@ -83,14 +75,3 @@
   :mode
   ("\\.gradle\\'"     . gradle-mode)
   ("\\.gradle.kts\\'" . gradle-mode))
-
-;;; maven-test-mode — run Maven tests and navigate to failures
-(use-package maven-test-mode
-  :after java-ts-mode
-  :hook
-  (java-ts-mode . maven-test-mode)
-  (java-ts-mode . (lambda ()
-                    (define-key me/run-map (kbd "t a") #'maven-test-all)
-                    (define-key me/run-map (kbd "t c") #'maven-test-class)
-                    (define-key me/run-map (kbd "t f") #'maven-test-method)
-                    (define-key me/run-map (kbd "t r") #'maven-test-rerun))))

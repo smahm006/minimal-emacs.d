@@ -8,12 +8,7 @@
   ("\\.cxx\\'" . c++-ts-mode)
   ("\\.hpp\\'" . c++-ts-mode)
   ("\\.hh\\'"  . c++-ts-mode)
-  :hook
-  (c++-ts-mode . eglot-ensure)
-  (c++-ts-mode . (lambda ()
-                   (define-key me/run-map (kbd "r") #'me/c++-run)
-                   (define-key me/run-map (kbd "b") #'me/c++-build)
-                   (define-key me/run-map (kbd "f") #'me/c++-format)))
+  :bind (:map me/cpp-run-map ("r" . me/c++-run) ("b" . me/c++-build))
   :preface
   (defun me/c++-project-root ()
     "Return the project root for the current C++ buffer."
@@ -40,12 +35,8 @@ Uses make if a Makefile is found, otherwise compiles and runs the file directly.
     (let ((default-directory (me/c++-project-root)))
       (compile "make")))
 
-  (defun me/c++-format ()
-    "Format the current buffer using apheleia (clang-format)."
-    (interactive)
-    (apheleia-format-buffer '(clang-format)))
-
   :config
+  (me/enable-run-map c++-ts-mode-map me/cpp-run-map)
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  `(c++-ts-mode . ,me/clangd-args))))

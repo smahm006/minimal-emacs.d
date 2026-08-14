@@ -71,59 +71,9 @@
         (error "No remote repository found"))
       (browse-url github-url))))
 
-;;; diff-hl — fringe indicators for uncommitted changes
-(use-package diff-hl
-  :hook
-  ((find-file    . diff-hl-mode)
-   (vc-dir-mode  . diff-hl-dir-mode)
-   (dired-mode   . diff-hl-dired-mode)
-   (diff-hl-mode . diff-hl-flydiff-mode)
-   (magit-pre-refresh  . diff-hl-magit-pre-refresh)
-   (magit-post-refresh . diff-hl-magit-post-refresh))
-  :bind
-  (:map me/vc-map
-        ("g" . diff-hl-show-hunk)
-        :repeat-map diff-hl-show-hunk-map
-        ("n" . diff-hl-show-hunk-next)
-        ("p" . diff-hl-show-hunk-previous)
-        ("r" . diff-hl-revert-hunk)
-        ("S" . diff-hl-stage-current-hunk)
-        :exit
-        ("C" . magit-commit-create))
-  :custom
-  (vc-git-diff-switches '("--histogram"))
-  (diff-hl-flydiff-delay 0.5)
-  (diff-hl-show-staged-changes nil)
-  :preface
-  (defun me/diff-hl-inline-popup-show-adv (orig-func &rest args)
-    "Strip the diff-hl inline popup header line."
-    (setcar (nthcdr 2 args) "")
-    (apply orig-func args))
-  (defun me/diff-hl-fix-face-colors (&rest _)
-    "Set foreground to background color for diff-hl faces for minimal fringe look."
-    (seq-do (lambda (face)
-              (when-let ((color (face-background face)))
-                (set-face-foreground face color)
-                (set-face-background face nil)))
-            '(diff-hl-insert diff-hl-delete diff-hl-change)))
-  (defun me/diff-hl-dired-no-query-on-exit (&rest _)
-    "Prevent the dired status process from prompting on kill."
-    (when-let ((proc (get-buffer-process diff-hl-dired-process-buffer)))
-      (set-process-query-on-exit-flag proc nil)))
-  :config
-  (advice-add #'diff-hl-dired-update :after #'me/diff-hl-dired-no-query-on-exit)
-  (advice-add #'diff-hl-inline-popup-show :around #'me/diff-hl-inline-popup-show-adv)
-  (let* ((width 2)
-         (bitmap (vector (1- (expt 2 width)))))
-    (define-fringe-bitmap 'me/diff-hl-bitmap bitmap 1 width '(top t)))
-  (setq diff-hl-fringe-bmp-function (lambda (_type _pos) 'me/diff-hl-bitmap))
-  (me/diff-hl-fix-face-colors)
-  (advice-add #'enable-theme :after #'me/diff-hl-fix-face-colors)
-  (when (not (display-graphic-p))
-    (diff-hl-margin-mode)))
-
 ;;; git-timemachine — step through a file's git history
 (use-package git-timemachine
+  :commands git-timemachine
   :bind
   (:map me/vc-map
         ("t" . git-timemachine)))

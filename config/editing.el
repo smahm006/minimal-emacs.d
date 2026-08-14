@@ -150,14 +150,6 @@ With a prefix argument, copy the entire buffer to the kill-ring and clear it."
   (:map mc/keymap
         ("<return>" . newline)))
 
-;;; Indentation detection
-;; Automatically detect and use the indentation style of the current file.
-(use-package dtrt-indent
-  :hook
-  (prog-mode . dtrt-indent-mode)
-  (text-mode . dtrt-indent-mode)
-  (conf-mode . dtrt-indent-mode))
-
 ;;; Spellcheck
 ;; Use jinx (enchant-2) if available, otherwise fall back to flyspell (hunspell).
 (use-package jinx

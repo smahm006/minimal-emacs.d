@@ -56,8 +56,6 @@
 ;; Block until all queued Elpaca packages (above) are ready before
 ;; continuing. This ensures use-package is available for the rest of
 ;; pre-init.el and all subsequent config files.
-(use-package compat :demand t)
-(use-package transient :demand t)
 (elpaca-wait)
 
 ;; Default all use-package declarations to :ensure t so only built-in
@@ -84,6 +82,39 @@
 (defvar-keymap me/run-map       :doc "Prefix map for run/compile commands.")
 (defvar-keymap me/word-map      :doc "Prefix map for word and text commands.")
 (defvar-keymap me/ai-map        :doc "Prefix map for AI agent commands.")
+
+;; Language run maps are children of the shared map.  Mode hooks must not
+;; rewrite `me/run-map`: doing so makes the bindings depend on which buffer
+;; happened to be opened last.
+(defvar-keymap me/bash-run-map :parent me/run-map)
+(defvar-keymap me/go-run-map :parent me/run-map)
+(defvar-keymap me/java-run-map :parent me/run-map)
+(defvar-keymap me/python-run-map :parent me/run-map)
+(defvar-keymap me/rust-run-map :parent me/run-map)
+(defvar-keymap me/web-run-map :parent me/run-map)
+(defvar-keymap me/yaml-run-map :parent me/run-map)
+(defvar-keymap me/zig-run-map :parent me/run-map)
+(defvar-keymap me/tex-run-map :parent me/run-map)
+(defvar-keymap me/c-run-map :parent me/run-map)
+(defvar-keymap me/cpp-run-map :parent me/run-map)
+
+(defun me/enable-run-map (mode-map run-map)
+  "Install RUN-MAP under `C-c r' in MODE-MAP.
+RUN-MAP inherits the common bindings and is shared by all buffers of the
+major mode, so opening a buffer cannot mutate global run commands."
+  (define-key mode-map (kbd "C-c r") run-map))
+
+(defun me/buffer-file-or-error ()
+  "Return the current file name, or signal a useful user error."
+  (or buffer-file-name
+      (user-error "This command requires a file-visiting buffer")))
+
+(defun me/project-root-or-error (markers)
+  "Return the project root containing one of MARKERS, or signal an error."
+  (let ((file (me/buffer-file-or-error)))
+    (or (seq-some (lambda (marker) (locate-dominating-file file marker)) markers)
+        (user-error "No project metadata found (expected %s)"
+                    (mapconcat #'identity markers ", ")))))
 
 (keymap-set global-map "C-c o" me/org-map)
 (keymap-set global-map "C-c w" me/window-map)

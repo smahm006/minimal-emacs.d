@@ -3,17 +3,13 @@
 (use-package rust
   :ensure nil
   :mode ("\\.rs\\'" . rust-ts-mode)
-  :hook
-  (rust-ts-mode . eglot-ensure)
-  (rust-ts-mode . (lambda ()
-                    (define-key me/run-map (kbd "r") #'me/rust-run)
-                    (define-key me/run-map (kbd "c") #'me/rust-check)
-                    (define-key me/run-map (kbd "f") #'me/rust-format)))
+  :bind
+  (:map me/rust-run-map
+        ("r" . me/rust-run) ("c" . me/rust-check))
   :preface
   (defun me/rust-project-root ()
     "Return the Cargo project root for the current buffer."
-    (or (locate-dominating-file buffer-file-name "Cargo.toml")
-        default-directory))
+    (me/project-root-or-error '("Cargo.toml")))
 
   (defun me/rust-run ()
     "Run the current Rust project with cargo run."
@@ -27,18 +23,10 @@
     (let ((default-directory (me/rust-project-root)))
       (compile "cargo clippy")))
 
-  (defun me/rust-format ()
-    "Format the current buffer using apheleia (rustfmt)."
-    (interactive)
-    (apheleia-format-buffer '(rustfmt)))
-
   :config
+  (me/enable-run-map rust-ts-mode-map me/rust-run-map)
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  '(rust-ts-mode . ("rust-analyzer"
                                    :initializationOptions
                                    (:check (:command "clippy")))))))
-
-;;; cargo-mode — run Cargo commands from Emacs
-(use-package cargo-mode
-  :hook (rust-ts-mode . cargo-minor-mode))

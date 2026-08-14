@@ -3,15 +3,9 @@
 (use-package svelte-ts-mode
   :ensure (:host github :repo "leafOfTree/svelte-ts-mode")
   :mode ("\\.svelte\\'" . svelte-ts-mode)
-  :hook
-  (svelte-ts-mode . eglot-ensure)
-  (svelte-ts-mode . add-node-modules-path)
-  (svelte-ts-mode . pnpm-mode)
-  (svelte-ts-mode . (lambda ()
-                      (define-key me/run-map (kbd "r") #'me/web-run)
-                      (define-key me/run-map (kbd "c") #'me/web-check)
-                      (define-key me/run-map (kbd "f") #'me/web-format)))
+  :bind (:map me/web-run-map ("r" . me/web-run) ("c" . me/web-check))
   :config
+  (me/enable-run-map svelte-ts-mode-map me/web-run-map)
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  '(svelte-ts-mode . ("svelteserver" "--stdio")))))

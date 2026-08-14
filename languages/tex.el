@@ -13,9 +13,9 @@
   ((LaTeX-mode . LaTeX-math-mode)
    (LaTeX-mode . TeX-source-correlate-mode)
    (LaTeX-mode . turn-on-reftex)
-   (LaTeX-mode . (lambda ()
-                   (define-key me/run-map (kbd "r") #'me/tex-compile)
-                   (define-key me/run-map (kbd "v") #'me/tex-view))))
+   )
+  :bind (:map me/tex-run-map
+              ("r" . me/tex-compile) ("v" . me/tex-view))
   :preface
   (defun me/tex-compile ()
     "Compile the current LaTeX document."
@@ -41,3 +41,6 @@
   (TeX-master nil)
   (TeX-PDF-mode t)
   (TeX-source-correlate-start-server t))  ; enable inverse search with pdf-tools
+
+(with-eval-after-load 'tex-mode
+  (me/enable-run-map LaTeX-mode-map me/tex-run-map))

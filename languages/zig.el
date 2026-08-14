@@ -2,13 +2,8 @@
 
 (use-package zig-ts-mode
   :mode ("\\.zig\\'" . zig-ts-mode)
-  :hook
-  (zig-ts-mode . eglot-ensure)
-  (zig-ts-mode . (lambda ()
-                   (define-key me/run-map (kbd "r") #'me/zig-run)
-                   (define-key me/run-map (kbd "b") #'me/zig-build)
-                   (define-key me/run-map (kbd "t") #'me/zig-test)
-                   (define-key me/run-map (kbd "f") #'me/zig-format)))
+  :bind (:map me/zig-run-map
+              ("r" . me/zig-run) ("b" . me/zig-build) ("t" . me/zig-test))
   :preface
   (defun me/zig-project-root ()
     "Return the Zig project root by locating build.zig."
@@ -42,12 +37,8 @@ Falls back to zig run on the current file if no build.zig is found."
         (compile (format "zig test %s"
                          (shell-quote-argument buffer-file-name))))))
 
-  (defun me/zig-format ()
-    "Format the current buffer using apheleia (zig fmt)."
-    (interactive)
-    (apheleia-format-buffer '(zig-fmt)))
-
   :config
+  (me/enable-run-map zig-ts-mode-map me/zig-run-map)
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  '(zig-ts-mode . ("zls")))))

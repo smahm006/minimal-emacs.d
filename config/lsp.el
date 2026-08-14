@@ -6,9 +6,7 @@
   :after project
   :hook
   (eglot-managed-mode . me/eglot-capf)
-  (eglot-managed-mode . (lambda ()
-                          (setq-local eldoc-documentation-strategy
-                                      'eldoc-documentation-compose-eagerly)))
+  (eglot-managed-mode . me/eglot-configure-eldoc)
   :bind
   (:map me/lsp-map
         ("l" . eglot)
@@ -27,22 +25,22 @@
                        #'eglot-completion-at-point
                        #'tempel-complete)
                       completion-at-point-functions)))
+
+  (defun me/eglot-configure-eldoc ()
+    "Use eager combined Eldoc documentation in managed buffers."
+    (setq-local eldoc-documentation-strategy
+                'eldoc-documentation-compose-eagerly))
   :custom
   (completion-category-defaults nil)  ; let orderless handle eglot candidates
   (eglot-autoshutdown t)
   (eglot-send-changes-idle-time 0.5)
+  (eglot-events-buffer-config '(:size 2000000 :format full))
   :config
   ;; Continuously update candidates using cape cache buster
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-  ;; Suppress verbose jsonrpc event logging
-  (fset #'jsonrpc--log-event #'ignore))
-
-;;; eglot-booster — speed up eglot using emacs-lsp-booster
-(use-package eglot-booster
-  :ensure (:host github :repo "jdtsmith/eglot-booster")
-  :after eglot
-  :config
-  (eglot-booster-mode 1))
+  ;; Keep the standard JSON-RPC event logger available for diagnosing failed
+  ;; servers.  The event buffer is bounded by `eglot-events-buffer-config'.
+  (setq jsonrpc-event-hook '(jsonrpc--log-event)))
 
 ;;; Eldoc — documentation in the echo area
 (use-package eldoc
@@ -52,17 +50,6 @@
         ("d" . eldoc-doc-buffer))
   :custom
   (eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly))
-
-;;; Eldoc-box — show eldoc in a floating child frame
-(use-package eldoc-box
-  :after eglot
-  :bind
-  (:map me/lsp-map
-        ("D" . eldoc-box-hover-at-point-mode))
-  :config
-  (with-eval-after-load 'pixel-scroll
-    (add-to-list 'eldoc-box-self-insert-command-list #'pixel-scroll-precision)
-    (add-to-list 'eldoc-box-self-insert-command-list #'pixel-scroll-start-momentum)))
 
 ;;; Flymake — on-the-fly syntax checking
 (use-package flymake
@@ -88,57 +75,78 @@
      flymake-mode-line-warning-counter
      flymake-mode-line-note-counter "")))
 
-;;; Apheleia — async code formatting on save
-;; Runs formatters asynchronously, preserves cursor position, and only
-;; applies changes if the buffer is unmodified after formatting.
+;;; Apheleia — manual asynchronous formatting
 (use-package apheleia
   :bind
-  (:map me/lsp-map
-        ("F" . apheleia-format-buffer))
+  (:map me/run-map
+        ("f" . me/format-buffer))
+  :preface
+  (defun me/apheleia-formatter-executable (formatter)
+    "Return FORMATTER's executable, or nil for an Emacs Lisp formatter."
+    (let ((definition (alist-get formatter apheleia-formatters)))
+      (when (and (listp definition)
+                 (stringp (car definition)))
+        (car definition))))
+
+  (defun me/format-buffer ()
+    "Format the current buffer with its configured Apheleia formatter."
+    (interactive)
+    (require 'apheleia-formatters)
+    (let* ((formatters (apheleia--get-formatters))
+           (missing
+            (seq-filter
+             (lambda (formatter)
+               (when-let* ((executable
+                            (me/apheleia-formatter-executable formatter)))
+                 (not (executable-find executable))))
+             formatters))
+           (label (mapconcat #'symbol-name formatters " -> ")))
+      (unless formatters
+        (user-error "No formatter configured for %s" major-mode))
+      (when missing
+        (user-error "Formatter %s unavailable: %s"
+                    label
+                    (mapconcat
+                     (lambda (formatter)
+                       (me/apheleia-formatter-executable formatter))
+                     missing ", ")))
+      (message "Formatting %s with %s" (buffer-name) label)
+      (apheleia-format-buffer
+       formatters nil
+       :callback
+       (lambda (&key error)
+         (if error
+             (message "Formatting with %s failed: %s" label error)
+           (message "Formatted %s with %s" (buffer-name) label))))))
   :config
-  ;; Ensure apheleia uses the correct formatters per mode.
-  ;; Languages not listed here use apheleia's built-in defaults.
-  ;; Extra Formatters
+  ;; Custom formatter definitions.
   (setf (alist-get 'ruff-fix apheleia-formatters)
         '("ruff" "check" "--fix" "--stdin-filename" filepath "-"))
   (setf (alist-get 'yamlfmt apheleia-formatters)
-      '("yamlfmt"))
+        '("yamlfmt"))
   (setf (alist-get 'zig-fmt apheleia-formatters)
         '("zig" "fmt" "--stdin"))
-  ;; Relevant Modes
-  (setf (alist-get 'python-ts-mode apheleia-mode-alist)
-        '(ruff-isort ruff))
-  (setf (alist-get 'go-ts-mode apheleia-mode-alist)
-        '(goimports gofumpt))
-  (setf (alist-get 'bash-ts-mode apheleia-mode-alist)
-        '(shfmt))
-  (setf (alist-get 'sh-mode apheleia-mode-alist)
-        '(shfmt))
   (setf (alist-get 'google-java-format apheleia-formatters)
         '("google-java-format" "--aosp" "-"))
-  (setf (alist-get 'java-ts-mode apheleia-mode-alist)
-        '(google-java-format))
-  (setf (alist-get 'rust-ts-mode apheleia-mode-alist)
-        '(rustfmt))
-  (setf (alist-get 'c-ts-mode apheleia-mode-alist)
-        '(clang-format))
-  (setf (alist-get 'c++-ts-mode apheleia-mode-alist)
-        '(clang-format))
-  (setf (alist-get 'zig-ts-mode apheleia-mode-alist)
-        '(zig-fmt))
-  (setf (alist-get 'js-ts-mode apheleia-mode-alist)
-        '(prettier))
-  (setf (alist-get 'jsx-ts-mode apheleia-mode-alist)
-        '(prettier))
-  (setf (alist-get 'typescript-ts-mode apheleia-mode-alist)
-        '(prettier))
-  (setf (alist-get 'tsx-ts-mode apheleia-mode-alist)
-        '(prettier))
-  (setf (alist-get 'svelte-mode apheleia-mode-alist)
-        '(prettier))
-  (setf (alist-get 'mhtml-mode apheleia-mode-alist)
-        '(prettier))
-  (setf (alist-get 'css-ts-mode apheleia-mode-alist)
-        '(prettier))
-  (setf (alist-get 'yaml-ts-mode apheleia-mode-alist)
-        '(yamlfmt)))
+  ;; One reviewed mode-to-formatter mapping.  Entries override Apheleia's
+  ;; defaults only where this configuration has an explicit workflow.
+  (dolist (entry '((python-ts-mode  ruff-isort ruff)
+                   (go-ts-mode      goimports gofumpt)
+                   (bash-ts-mode    shfmt)
+                   (sh-mode         shfmt)
+                   (java-ts-mode    google-java-format)
+                   (rust-ts-mode    rustfmt)
+                   (c-ts-mode       clang-format)
+                   (c++-ts-mode     clang-format)
+                   (zig-ts-mode     zig-fmt)
+                   (js-ts-mode      prettier)
+                   (jsx-ts-mode     prettier)
+                   (typescript-ts-mode prettier)
+                   (tsx-ts-mode     prettier)
+                   (svelte-ts-mode  prettier)
+                   (mhtml-mode      prettier)
+                   (css-ts-mode     prettier)
+                   (yaml-ts-mode    yamlfmt)
+                   (json-ts-mode    jq)))
+    (setf (alist-get (car entry) apheleia-mode-alist)
+          (cdr entry))))

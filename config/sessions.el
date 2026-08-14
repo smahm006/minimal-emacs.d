@@ -42,33 +42,15 @@
         ("x" . revert-buffer))
   :custom
   (auto-revert-interval 1)
-  (global-auto-revert-non-file-buffers t)
+  (global-auto-revert-non-file-buffers nil)
   (auto-revert-use-notify t)
   (auto-revert-avoid-polling t)
   (auto-revert-verbose nil)
   :config
   (setq revert-without-query '(".*")))
 
-;;; Super-save — autosave on focus/window events
-(use-package super-save
-  :hook (elpaca-after-init . super-save-mode)
-  :custom
-  (super-save-auto-save-when-idle t)
-  (super-save-idle-duration 5)
-  (super-save-remote-files nil)
-  (super-save-silent t)
-  :config
-  (add-to-list 'super-save-triggers 'ace-window)
-  (setq super-save-exclude '(".gpg")))
-
 ;;; Versioned backups
-;; Force a fresh backup on every save, not just the first.
-(defun me/force-backup-of-buffer ()
-  "Force a new backup on every save by resetting the backed-up flag."
-  (setq buffer-backed-up nil))
-(add-hook 'before-save-hook #'me/force-backup-of-buffer)
-
-(setq auto-save-default nil)          ; super-save handles autosave
+(setq auto-save-default t)            ; use Emacs' native crash recovery
 (setq backup-by-copying t)            ; don't clobber symlinks
 (setq vc-make-backup-files t)         ; backup even VCS-tracked files
 (setq version-control t)              ; use numbered backups

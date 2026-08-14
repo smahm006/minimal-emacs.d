@@ -7,20 +7,12 @@
   ("\\.mjs\\'" . js-ts-mode)
   ("\\.cjs\\'" . js-ts-mode)
   ("\\.jsx\\'" . jsx-ts-mode)
-  :hook
-  (js-ts-mode  . eglot-ensure)
-  (jsx-ts-mode . eglot-ensure)
-  (js-ts-mode  . (lambda ()
-                   (define-key me/run-map (kbd "r") #'me/web-run)
-                   (define-key me/run-map (kbd "c") #'me/web-check)
-                   (define-key me/run-map (kbd "f") #'me/web-format)))
-  (jsx-ts-mode . (lambda ()
-                   (define-key me/run-map (kbd "r") #'me/web-run)
-                   (define-key me/run-map (kbd "c") #'me/web-check)
-                   (define-key me/run-map (kbd "f") #'me/web-format)))
+  :bind (:map me/web-run-map ("r" . me/web-run) ("c" . me/web-check))
   :custom
   (js-indent-level 2)
   :config
+  (me/enable-run-map js-ts-mode-map me/web-run-map)
+  (me/enable-run-map jsx-ts-mode-map me/web-run-map)
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  '((js-ts-mode jsx-ts-mode) .

@@ -58,13 +58,6 @@ reattached."
 
 (keymap-global-set "C-x C-r" #'me/restart-emacs-service)
 
-;;; Byte/native compile installed packages on first load
-(use-package compile-angel
-  :demand t
-  :config
-  (compile-angel-on-load-mode)
-  (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode))
-
 ;;; Pin the interactive shell to zsh
 ;; The daemon inherits SHELL=/bin/bash from systemd; override it.
 (setq shell-file-name "/usr/bin/zsh")

@@ -225,12 +225,8 @@
 ;; changes gracefully, making the restrictive nature of lockfiles unnecessary.
 (setq create-lockfiles nil)
 
-;; Disable backup files (e.g., filename~). Note that `auto-save-default'
-;; remains enabled by default. Even with `make-backup-files' backups disabled,
-;; Emacs will still generate temporary recovery files (e.g., #filename#) for
-;; unsaved buffers. This protects your active work from sudden crashes while
-;; ensuring the file system is cleaned up immediately upon a successful save.
-(setq make-backup-files nil)
+;; Keep native versioned backups and native auto-save crash recovery enabled.
+(setq make-backup-files t)
 
 (setq backup-directory-alist
       `(("." . ,(expand-file-name "backup" user-emacs-directory))))

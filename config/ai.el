@@ -2,10 +2,8 @@
 
 ;;; agent-shell — LLM coding agents in a native Emacs buffer
 ;; Agents are driven over ACP (Agent Client Protocol) making it agent agnostic.
-(use-package acp)
-(use-package shell-maker)
-
 (use-package agent-shell
+  :hook (agent-shell-viewport-mode . visual-line-mode)
   :bind
   (:map me/ai-map
         ("a" . agent-shell)

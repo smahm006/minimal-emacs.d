@@ -72,8 +72,3 @@ See https://karthinks.com/software/emacs-window-management-almanac/"
   (aw-leading-char-face ((t (:foreground "red" :weight bold :height 2.0))))
   :config
   (setq window-combination-resize t))
-
-;;; Writeroom — distraction-free writing
-(use-package writeroom-mode
-  :bind
-  ("<f3>" . writeroom-mode))
