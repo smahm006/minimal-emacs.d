@@ -162,7 +162,7 @@
 
 ;; Automatically rescan the buffer for Imenu entries when `imenu' is invoked
 ;; This ensures the index reflects recent edits.
-(setq imenu-auto-rescan t)
+(setq-default imenu-auto-rescan t)
 
 ;; Prevent truncation of long function names in `imenu' listings
 (setq imenu-max-item-length 160)
@@ -257,7 +257,7 @@
 (when noninteractive
   ;; The command line interface
   (setq enable-dir-local-variables nil)
-  (setq case-fold-search nil))
+  (setq-default case-fold-search nil))
 
 ;; Do not auto-disable auto-save after deleting large chunks of
 ;; text.
@@ -552,6 +552,10 @@ This should be called after changing `auto-save-list-file-prefix'."
 ;; Activate Eglot in cross-referenced non-project files
 (setq eglot-extend-to-xref t)
 
+;; Disable margin indicators to prevent line-height shifts caused by emoji font
+;; rendering issues. This disables both `left-fringe' and `margin' indicators.
+(setq eglot-code-action-indications '(eldoc-hint))
+
 ;; Eglot optimization
 (if minimal-emacs-debug
     (setq eglot-events-buffer-config '(:size 2000000 :format full))
@@ -649,7 +653,7 @@ This should be called after changing `auto-save-list-file-prefix'."
 (setq minimal-emacs--success t)
 
 ;; Local variables:
-;; byte-compile-warnings: (not obsolete free-vars)
+;; byte-compile-warnings: (not free-vars)
 ;; End:
 
 ;;; init.el ends here
