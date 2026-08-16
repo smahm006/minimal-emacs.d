@@ -44,22 +44,18 @@
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
-;; Enable 'elpaca-no-symlink-mode' on Windows, as symlink creation
-;; often fails without Administrator privileges or Developer Mode.
+;; Symlinks often fail on Windows without extra permissions.
 (when (eq system-type 'windows-nt)
   (elpaca-no-symlink-mode 1))
 
-;; Install use-package support and enable :ensure support for Elpaca.
+;; Add use-package support.
 (elpaca elpaca-use-package
   (elpaca-use-package-mode))
 
-;; Block until all queued Elpaca packages (above) are ready before
-;; continuing. This ensures use-package is available for the rest of
-;; pre-init.el and all subsequent config files.
+;; Wait until queued packages are ready.
 (elpaca-wait)
 
-;; Default all use-package declarations to :ensure t so only built-in
-;; packages need an explicit :ensure nil to opt out.
+;; Install packages by default.
 (setq use-package-always-ensure t)
 
 ;;; Clipboard / kill-ring integration
@@ -67,8 +63,7 @@
 (setq yank-pop-change-selection t)
 
 ;;; Keybind prefix maps
-;; These are defined here (before any config file loads) so that every
-;; use-package :bind in config/* and languages/* can reference them safely.
+;; Define these before loading the config modules.
 (defvar-keymap me/org-map       :doc "Prefix map for Org commands.")
 (defvar-keymap me/window-map    :doc "Prefix map for window commands.")
 (defvar-keymap me/buffer-map    :doc "Prefix map for buffer commands.")
@@ -83,9 +78,7 @@
 (defvar-keymap me/word-map      :doc "Prefix map for word and text commands.")
 (defvar-keymap me/ai-map        :doc "Prefix map for AI agent commands.")
 
-;; Language run maps are children of the shared map.  Mode hooks must not
-;; rewrite `me/run-map`: doing so makes the bindings depend on which buffer
-;; happened to be opened last.
+;; Language maps inherit the shared run map. Keep the shared map unchanged.
 (defvar-keymap me/bash-run-map :parent me/run-map)
 (defvar-keymap me/go-run-map :parent me/run-map)
 (defvar-keymap me/java-run-map :parent me/run-map)
@@ -99,18 +92,16 @@
 (defvar-keymap me/cpp-run-map :parent me/run-map)
 
 (defun me/enable-run-map (mode-map run-map)
-  "Install RUN-MAP under `C-c r' in MODE-MAP.
-RUN-MAP inherits the common bindings and is shared by all buffers of the
-major mode, so opening a buffer cannot mutate global run commands."
+  "Put RUN-MAP on `C-c r' in MODE-MAP."
   (define-key mode-map (kbd "C-c r") run-map))
 
 (defun me/buffer-file-or-error ()
-  "Return the current file name, or signal a useful user error."
+  "Return the current file, or raise an error."
   (or buffer-file-name
       (user-error "This command requires a file-visiting buffer")))
 
 (defun me/project-root-or-error (markers)
-  "Return the project root containing one of MARKERS, or signal an error."
+  "Return the project root, or raise an error."
   (let ((file (me/buffer-file-or-error)))
     (or (seq-some (lambda (marker) (locate-dominating-file file marker)) markers)
         (user-error "No project metadata found (expected %s)"
@@ -133,12 +124,12 @@ major mode, so opening a buffer cannot mutate global run commands."
 
 ;;; Utility functions
 (defun me/revert-buffer-no-confirm ()
-  "Revert the current buffer without asking for confirmation."
+  "Revert the buffer without asking."
   (interactive)
   (revert-buffer nil t t))
 
 (defun me/mkdir (dir)
-  "Create DIR and all parent directories if they don't exist."
+  "Create DIR and its parent directories."
   (unless (file-exists-p dir)
     (make-directory dir t)))
 
@@ -151,7 +142,7 @@ major mode, so opening a buffer cannot mutate global run commands."
 ;;; Sensitive file mode
 ;; Disable backups and auto-save for files that should never be written to disk.
 (define-minor-mode sensitive-mode
-  "For sensitive files, do not write backups or auto-saves."
+  "Do not save backups or auto-saves for sensitive files."
   :init-value nil
   (if sensitive-mode
       (progn

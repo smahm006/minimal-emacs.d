@@ -32,17 +32,17 @@
    ("=" . (lambda () (interactive) (text-scale-increase 0))))
   :preface
   (defun me/hsplit-last-window ()
-    "Split window horizontally and focus the new window."
+    "Split horizontally and focus the new window."
     (interactive)
     (split-window-horizontally)
     (other-window 1))
   (defun me/vsplit-last-window ()
-    "Split window vertically and focus the new window."
+    "Split vertically and focus the new window."
     (interactive)
     (split-window-vertically)
     (other-window 1))
   (defun me/toggle-fullscreen-window ()
-    "Toggle the current window as fullscreen, saving/restoring layout."
+    "Toggle fullscreen for the current window."
     (interactive)
     (if (= 1 (length (window-list)))
         (jump-to-register '_)
@@ -50,8 +50,7 @@
         (window-configuration-to-register '_)
         (delete-other-windows))))
   (defun me/ace-window-prefix ()
-    "Use ace-window to select a window for the next command's buffer.
-See https://karthinks.com/software/emacs-window-management-almanac/"
+    "Pick a window for the next buffer."
     (interactive)
     (display-buffer-override-next-command
      (lambda (buffer _)

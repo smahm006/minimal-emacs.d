@@ -6,11 +6,13 @@
   :bind (:map me/python-run-map
               ("r" . me/python-run) ("c" . me/python-check)
               ("w" . me/python-fix) ("t" . me/python-test))
+  :hook
+  (python-ts-mode . (lambda ()
+                      (local-set-key [remap backward-sexp] #'python-nav-backward-sexp-safe)
+                      (local-set-key [remap forward-sexp] #'python-nav-forward-sexp-safe)))
   :preface
   (defun me/python-run ()
-    "Run the current file using uv run.
-If a uv-managed project is detected (pyproject.toml), uses `uv run python'.
-Otherwise falls back to plain `python3'."
+    "Run the file with uv or python3."
     (interactive)
     (let* ((file (me/buffer-file-or-error))
            (root (locate-dominating-file file "pyproject.toml"))

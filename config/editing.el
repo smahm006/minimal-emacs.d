@@ -26,7 +26,7 @@
 
 ;;; Custom editing functions
 (defun me/backward-kill-thing ()
-  "Delete pair, word, whitespace or char backward depending on context."
+  "Delete backward based on context."
   (interactive)
   (cond
    ((and (not (bobp))
@@ -47,8 +47,7 @@
     (message "Deleted character"))))
 
 (defun me/kill-region-or-line ()
-  "Kill the region if active, otherwise kill the current line.
-With a prefix argument, copy the entire buffer to the kill-ring and clear it."
+  "Kill the region, or the current line."
   (interactive)
   (if current-prefix-arg
       (progn
@@ -59,13 +58,13 @@ With a prefix argument, copy the entire buffer to the kill-ring and clear it."
       (kill-region (line-beginning-position) (line-beginning-position 2)))))
 
 (defun me/smart-kill-line-backwards ()
-  "Kill from point to the beginning of the line, respecting indentation."
+  "Kill to the line start, keeping indentation."
   (interactive)
   (kill-line 0)
   (indent-according-to-mode))
 
 (defun me/smarter-move-beginning-of-line (arg)
-  "Move to indentation, or to the true beginning of line if already there."
+  "Move to indentation, then to column zero."
   (interactive "^p")
   (setq arg (or arg 1))
   (when (/= arg 1)
@@ -77,20 +76,20 @@ With a prefix argument, copy the entire buffer to the kill-ring and clear it."
       (move-beginning-of-line 1))))
 
 (defun me/smart-kill-whole-line (&optional arg)
-  "Kill the whole line and move point back to indentation."
+  "Kill the line and return to indentation."
   (interactive "P")
   (kill-whole-line arg)
   (back-to-indentation))
 
 (defun me/move-line-up ()
-  "Move the current line up by one."
+  "Move the line up."
   (interactive)
   (transpose-lines 1)
   (forward-line -2)
   (indent-according-to-mode))
 
 (defun me/move-line-down ()
-  "Move the current line down by one."
+  "Move the line down."
   (interactive)
   (forward-line 1)
   (transpose-lines 1)
@@ -98,13 +97,13 @@ With a prefix argument, copy the entire buffer to the kill-ring and clear it."
   (indent-according-to-mode))
 
 (defun me/smart-open-line-below ()
-  "Insert an empty line after the current line and move point there."
+  "Add a blank line below and move there."
   (interactive)
   (move-end-of-line nil)
   (newline-and-indent))
 
 (defun me/smart-open-line-above ()
-  "Insert an empty line above the current line and move point there."
+  "Add a blank line above and move there."
   (interactive)
   (move-beginning-of-line nil)
   (newline-and-indent)
@@ -175,7 +174,7 @@ With a prefix argument, copy the entire buffer to the kill-ring and clear it."
   (ispell-change-dictionary        . me/restart-flyspell-mode)
   :preface
   (defun me/restart-flyspell-mode ()
-    "Restart flyspell-mode to pick up a dictionary change."
+    "Restart flyspell after a dictionary change."
     (when flyspell-mode
       (flyspell-mode-off)
       (flyspell-mode-on)

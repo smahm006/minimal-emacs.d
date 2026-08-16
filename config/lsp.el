@@ -19,7 +19,7 @@
         ("r" . eglot-rename))
   :preface
   (defun me/eglot-capf ()
-    "Merge eglot and tempel completions into a single capf."
+    "Merge eglot and tempel completion."
     (setq-local completion-at-point-functions
                 (cons (cape-capf-super
                        #'eglot-completion-at-point
@@ -27,7 +27,7 @@
                       completion-at-point-functions)))
 
   (defun me/eglot-configure-eldoc ()
-    "Use eager combined Eldoc documentation in managed buffers."
+    "Use combined Eldoc docs in managed buffers."
     (setq-local eldoc-documentation-strategy
                 'eldoc-documentation-compose-eagerly))
   :custom
@@ -82,14 +82,14 @@
         ("f" . me/format-buffer))
   :preface
   (defun me/apheleia-formatter-executable (formatter)
-    "Return FORMATTER's executable, or nil for an Emacs Lisp formatter."
+    "Return FORMATTER's executable, or nil for Emacs Lisp."
     (let ((definition (alist-get formatter apheleia-formatters)))
       (when (and (listp definition)
                  (stringp (car definition)))
         (car definition))))
 
   (defun me/format-buffer ()
-    "Format the current buffer with its configured Apheleia formatter."
+    "Format the buffer with Apheleia."
     (interactive)
     (require 'apheleia-formatters)
     (let* ((formatters (apheleia--get-formatters))

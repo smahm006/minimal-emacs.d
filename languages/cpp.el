@@ -17,8 +17,7 @@
         default-directory))
 
   (defun me/c++-run ()
-    "Run the current C++ file or project.
-Uses make if a Makefile is found, otherwise compiles and runs the file directly."
+    "Run the C++ project or current file."
     (interactive)
     (let ((root (me/c++-project-root)))
       (if (file-exists-p (expand-file-name "Makefile" root))

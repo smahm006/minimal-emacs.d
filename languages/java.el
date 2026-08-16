@@ -9,7 +9,7 @@
         ("b" . me/java-build) ("C" . me/java-clean))
   :preface
   (defun me/java-build-tool ()
-    "Return the build tool symbol for the current project: `mvn', `gradle' or nil."
+    "Return the project build tool, or nil."
     (cond
      ((locate-dominating-file default-directory "pom.xml")          'mvn)
      ((locate-dominating-file default-directory "build.gradle")     'gradle)
@@ -17,7 +17,7 @@
      (t nil)))
 
   (defun me/java-project-root ()
-    "Return the project root directory for the current Java project."
+    "Return the Java project root."
     (pcase (me/java-build-tool)
       ('mvn    (locate-dominating-file default-directory "pom.xml"))
       ('gradle (or (locate-dominating-file default-directory "build.gradle")
@@ -25,7 +25,7 @@
       (_       default-directory)))
 
   (defun me/java-run ()
-    "Run the current Java project using Maven or Gradle."
+    "Run the Java project."
     (interactive)
     (let ((default-directory (me/java-project-root)))
       (pcase (me/java-build-tool)
@@ -37,7 +37,7 @@
                                    (file-name-nondirectory buffer-file-name))))))))
 
   (defun me/java-test ()
-    "Run tests for the current Java project using Maven or Gradle."
+    "Run Java tests."
     (interactive)
     (let ((default-directory (me/java-project-root)))
       (pcase (me/java-build-tool)
@@ -46,7 +46,7 @@
         (_       (message "No build tool detected. Please use Maven or Gradle.")))))
 
   (defun me/java-build ()
-    "Build the current Java project using Maven or Gradle."
+    "Build the Java project."
     (interactive)
     (let ((default-directory (me/java-project-root)))
       (pcase (me/java-build-tool)
@@ -56,7 +56,7 @@
                                   (shell-quote-argument buffer-file-name)))))))
 
   (defun me/java-clean ()
-    "Clean build artifacts using Maven or Gradle."
+    "Clean Java build files."
     (interactive)
     (let ((default-directory (me/java-project-root)))
       (pcase (me/java-build-tool)

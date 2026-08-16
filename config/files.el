@@ -12,20 +12,20 @@
   (me/protected-buffers)
   :preface
   (defvar me/protected-buffers '("*scratch*" "*Messages*")
-    "Buffers that should never be killed.")
+    "Buffers that must not be killed.")
   (defun me/protected-buffers ()
-    "Protect some buffers from being killed."
+    "Protect buffers from being killed."
     (dolist (buffer me/protected-buffers)
       (with-current-buffer buffer
         (emacs-lock-mode 'kill))))
   (defun me/temporary-buffer ()
-    "Create and switch to a timestamped temporary buffer."
+    "Create and switch to a temp buffer."
     (interactive)
     (switch-to-buffer
      (get-buffer-create
       (concat "tmp-" (format-time-string "%m.%dT%H.%M.%S")))))
   (defun me/kill-other-buffers ()
-    "Kill all buffers except the current one and protected buffers."
+    "Kill all buffers except the current and protected ones."
     (interactive)
     (when (and (featurep 'eglot) (fboundp 'eglot-shutdown-all))
       (eglot-shutdown-all))
@@ -69,7 +69,7 @@
         ("s" . project-search))
   :preface
   (defun me/project-save-all-buffers (&optional proj arg)
-    "Save all modified file-visiting buffers in the current project silently."
+    "Save modified project files without asking."
     (interactive)
     (let* ((proj (or proj (project-current)))
            (buffers (project-buffers proj)))
@@ -92,16 +92,14 @@
   (setq project-vc-extra-root-markers '(".project")))
 
 (defun me/path-at-point ()
-  "Return the file represented by the current buffer or Dired point."
+  "Return the file at point or in the current buffer."
   (if (derived-mode-p 'dired-mode)
       (dired-get-file-for-visit)
     (or buffer-file-name
         (user-error "This command requires a file or Dired entry"))))
 
 (defun me/copy-file-path (arg)
-  "Copy a path to the kill ring.
-With no prefix, copy a project-relative path.  With `C-u', copy an absolute
-path.  With `C-u 0', copy only the basename."
+  "Copy a path to the kill ring."
   (interactive "P")
   (let* ((path (file-truename (me/path-at-point)))
          (result
@@ -134,11 +132,11 @@ path.  With `C-u 0', copy only the basename."
         ("y" . me/copy-file-path))
   :preface
   (defun me/dired-jump-and-revert ()
-    "Open Dired at the current file's directory."
+    "Open Dired in the current file's directory."
     (interactive)
     (dired-jump))
   (defun me/dired-kill-all-buffers ()
-    "Kill all dired and image-dired buffers."
+    "Kill all Dired buffers."
     (interactive)
     (mapc (lambda (buffer)
             (when (or (eq 'dired-mode

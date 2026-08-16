@@ -22,7 +22,7 @@
         ("o"  . me/open-on-github))
   :preface
   (defun me/magit-amend-file-and-push ()
-    "Stage the current file, amend the last commit, and force-push with lease."
+    "Stage, amend, and force-push the current file."
     (interactive)
     (let ((file (buffer-file-name)))
       (if file
@@ -32,13 +32,13 @@
             (magit-run-git "push" "--force-with-lease"))
         (message "No file associated with this buffer!"))))
   (defun me/magit-amend-all-and-push ()
-    "Stage all modified files, amend the last commit, and force-push with lease."
+    "Stage all files, amend, and force-push."
     (interactive)
     (magit-stage-modified)
     (magit-run-git "commit" "--amend" "--no-edit")
     (magit-run-git "push" "--force-with-lease"))
   (defun me/open-on-github ()
-    "Open the current file (and region if active) on GitHub."
+    "Open the file or region on GitHub."
     (interactive)
     (let* ((base-dir (vc-root-dir))
            (repo-url (magit-git-string "remote" "get-url" "--push" "origin"))

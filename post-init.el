@@ -3,14 +3,12 @@
 (setq confirm-kill-emacs 'y-or-n-p)
 
 ;;; Restart the Emacs daemon
-;; The restart is handed to a `systemd-run' transient unit: it gets its own
-;; cgroup and so survives emacs.service going down.
+;; Run the restart in a unit that survives the old service stopping.
 (defconst me/restart-emacs-timeout 60
-  "Seconds to wait for the daemon to answer before giving up on reopening frames.")
+  "Seconds to wait for the daemon.")
 
 (defun me/restart-emacs--script (sh systemctl timeout emacsclient frames)
-  "Shell script for the transient unit: restart, wait, reopen FRAMES frames.
-Deliberately free of shell variables; systemd expands `${...}' itself."
+  "Return a script that restarts Emacs and opens FRAMES frames."
   (concat
    (format "%s --user restart emacs.service || true\n" systemctl)
    ;; `-e t' proves the server socket is live, unlike unit state.
@@ -22,10 +20,7 @@ Deliberately free of shell variables; systemd expands `${...}' itself."
               "")))
 
 (defun me/restart-emacs-service ()
-  "Restart the `emacs.service' systemd user unit, then reopen frames.
-Saves file-visiting buffers first, since this kills every client frame.
-One graphical frame is reopened per open frame; terminal frames cannot be
-reattached."
+  "Restart Emacs and reopen its graphical frames."
   (interactive)
   (let ((systemd-run (executable-find "systemd-run"))
         (systemctl (executable-find "systemctl"))
@@ -59,7 +54,7 @@ reattached."
 (keymap-global-set "C-x C-r" #'me/restart-emacs-service)
 
 ;;; Pin the interactive shell to zsh
-;; The daemon inherits SHELL=/bin/bash from systemd; override it.
+;; The daemon gets bash from systemd. Use zsh instead.
 (setq shell-file-name "/usr/bin/zsh")
 (setq explicit-shell-file-name "/usr/bin/zsh")
 (setenv "SHELL" shell-file-name)
@@ -74,8 +69,7 @@ reattached."
   (exec-path-from-shell-variables '("PATH" "GOPATH")))
 
 ;;; GnuPG / Yubikey integration
-;; systemd starts the daemon, so it misses the zsh rc files that set these.
-;; Order matters: the ssh socket path is derived from GNUPGHOME.
+;; The daemon does not read zsh startup files.
 (setenv "GNUPGHOME"
         (expand-file-name "gnupg" (or (getenv "XDG_CONFIG_HOME")
                                       (expand-file-name "~/.config"))))
@@ -90,7 +84,7 @@ reattached."
 (setq epa-file-cache-passphrase-for-symmetric-encryption t)
 
 ;;; Load config modules
-;; Order matters: appearance before anything referencing faces, sessions early.
+;; Load appearance first and sessions early.
 (dolist (module '("appearance"
                   "sessions"
                   "minibuffer"

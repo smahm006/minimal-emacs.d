@@ -9,7 +9,7 @@
     (let ((default-directory root)) (compile "pnpm run dev"))))
 
 (defun me/web-project-tool (tool)
-  "Return TOOL from the current project's node_modules, or a global fallback."
+  "Return the local TOOL, or a global one."
   (let* ((root (me/project-root-or-error '("package.json")))
          (local (expand-file-name (concat "node_modules/.bin/" tool) root)))
     (if (file-executable-p local) local tool)))

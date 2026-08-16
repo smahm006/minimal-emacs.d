@@ -4,7 +4,7 @@
 (setq debug-on-error t)
 
 ;;; Package manager
-;; Disable the built-in package manager since Elpaca will replace it.
+;; Elpaca replaces package.el.
 (setq minimal-emacs-package-initialize-and-refresh nil)
 
 ;;; XDG Base Directory paths
@@ -14,12 +14,12 @@
 (defvar xdg-cache (or (getenv "XDG_CACHE_HOME") (expand-file-name "~/.cache")))
 
 ;;; Native compilation cache
-;; Redirect the eln-cache to XDG_CACHE_HOME to keep config folder clean.
+;; Keep compiled files in the XDG cache.
 (when (fboundp 'startup-redirect-eln-cache)
   (startup-redirect-eln-cache
    (expand-file-name "emacs/eln-cache/" xdg-cache)))
 
-;;; Change the default emacs configuration dircetory to avoid cluttering main
+;;; Move Emacs state out of the config directory.
 (setq minimal-emacs-user-directory user-emacs-directory)
 (setq minimal-emacs-var-dir (expand-file-name "var/" minimal-emacs-user-directory))
 (setq user-emacs-directory minimal-emacs-var-dir)

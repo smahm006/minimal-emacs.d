@@ -8,17 +8,17 @@
         ("r" . me/rust-run) ("c" . me/rust-check))
   :preface
   (defun me/rust-project-root ()
-    "Return the Cargo project root for the current buffer."
+    "Return the Cargo project root."
     (me/project-root-or-error '("Cargo.toml")))
 
   (defun me/rust-run ()
-    "Run the current Rust project with cargo run."
+    "Run the Rust project."
     (interactive)
     (let ((default-directory (me/rust-project-root)))
       (compile "cargo run")))
 
   (defun me/rust-check ()
-    "Check the current Rust project with cargo clippy."
+    "Run Rust checks."
     (interactive)
     (let ((default-directory (me/rust-project-root)))
       (compile "cargo clippy")))

@@ -13,9 +13,7 @@
                                          (matcher . "CaseSensitive")))))))
   :preface
   (defun me/go-run ()
-    "Run the current Go file or package.
-If a go.mod is found, runs the whole package with `go run ./...'.
-Otherwise falls back to running the current file directly."
+    "Run the current Go package or file."
     (interactive)
     (let* ((root (locate-dominating-file buffer-file-name "go.mod"))
            (cmd (if root

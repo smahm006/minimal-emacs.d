@@ -3,7 +3,7 @@
 ;;; agent-shell — LLM coding agents in a native Emacs buffer
 ;; Agents are driven over ACP (Agent Client Protocol) making it agent agnostic.
 (use-package agent-shell
-  :hook (agent-shell-viewport-mode . visual-line-mode)
+  :hook (agent-shell-viewport-edit-mode . visual-line-mode)
   :bind
   (:map me/ai-map
         ("a" . agent-shell)
@@ -21,12 +21,10 @@
         ("D c a" . me/claude-delete-all-sessions))
   :preface
   (defconst me/claude-projects-directory (expand-file-name "~/.claude/projects/")
-    "Where Claude stores per-project session transcripts and memory.")
+    "Directory for Claude project sessions.")
 
   (defun me/claude-project-sessions-directory ()
-    "Return the Claude sessions directory for the current project.
-Claude names it after the project root, with every non-alphanumeric
-character replaced by a dash."
+    "Return the Claude session directory for this project."
     (let ((root (directory-file-name
                  (expand-file-name
                   (or (when-let* ((proj (project-current)))
@@ -36,17 +34,14 @@ character replaced by a dash."
                         me/claude-projects-directory)))
 
   (defun me/claude--close-shells (buffers)
-    "Kill agent shell BUFFERS, shutting down their ACP clients.
-`agent-shell' hangs its clean-up on `kill-buffer-hook', so killing the
-buffer is what ends the session."
+    "Kill agent shell BUFFERS and their ACP clients."
     (let ((kill-buffer-query-functions nil))
       (dolist (buffer buffers)
         (when (buffer-live-p buffer)
           (kill-buffer buffer)))))
 
   (defun me/claude-delete-project-sessions ()
-    "Close this project's agent shells and delete its Claude sessions.
-Deletes `~/.claude/projects/<project>' entirely, memory included."
+    "Close this project's shells and delete its Claude sessions."
     (interactive)
     (let ((dir (me/claude-project-sessions-directory))
           (shells (when (fboundp 'agent-shell-project-buffers)
@@ -62,8 +57,7 @@ Deletes `~/.claude/projects/<project>' entirely, memory included."
                  (length shells) (abbreviate-file-name dir)))))
 
   (defun me/claude-delete-all-sessions ()
-    "Close every agent shell and delete all Claude sessions.
-Deletes `~/.claude/projects' entirely, every project's memory included."
+    "Close all agent shells and delete all Claude sessions."
     (interactive)
     (let ((shells (when (fboundp 'agent-shell-buffers)
                     (agent-shell-buffers)))

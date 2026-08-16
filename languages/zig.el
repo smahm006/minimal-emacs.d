@@ -11,8 +11,7 @@
         default-directory))
 
   (defun me/zig-run ()
-    "Run the current Zig project with zig build run.
-Falls back to zig run on the current file if no build.zig is found."
+    "Run the Zig project or current file."
     (interactive)
     (let ((root (me/zig-project-root)))
       (if (file-exists-p (expand-file-name "build.zig" root))

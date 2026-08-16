@@ -26,6 +26,11 @@
   (corfu-quit-no-match t)         ; quit if no match
   (corfu-preview-current t)       ; preview current candidate
   (corfu-auto-prefix 2)           ; complete after 2 characters
+  :custom-face
+  ;; Match Danneskjold: no row highlight, only a yellow selected candidate.
+  (corfu-default ((t (:foreground "#FFFFFF" :background "#000000"))))
+  (corfu-current ((t (:foreground "#FFCC00" :background "#000000" :extend t))))
+  (corfu-annotations ((t (:foreground "#525254"))))
   :config
   (keymap-unset corfu-map "RET")
   (define-key corfu-map [remap previous-line] nil)
